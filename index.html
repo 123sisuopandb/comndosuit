@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRYPTOGRAPHYTUBE - SISUJHON</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a1a;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-family: 'Rajdhani', sans-serif;
+            color: #ffffff;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: radial-gradient(ellipse at 20% 20%, rgba(0, 50, 150, 0.3) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(200, 80, 0, 0.2) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 50%, rgba(0, 30, 100, 0.4) 0%, transparent 70%);
+            animation: bgPulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgPulse {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(30deg); }
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(0, 150, 255, 0.6);
+            border-radius: 50%;
+            animation: floatUp linear infinite;
+            box-shadow: 0 0 10px rgba(0, 150, 255, 0.8);
+        }
+
+        .particle:nth-child(odd) {
+            background: rgba(255, 100, 0, 0.6);
+            box-shadow: 0 0 10px rgba(255, 100, 0, 0.8);
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* Grid Lines */
+        .grid-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(0, 100, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 100, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+
+        /* Main Container */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        /* B Logo */
+        .logo-container {
+            position: relative;
+            margin-bottom: 30px;
+            perspective: 1000px;
+        }
+
+        .logo-b {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #001a4d 0%, #003d99 50%, #0066cc 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 64px;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(0, 150, 255, 0.8), 0 0 40px rgba(0, 150, 255, 0.4);
+            border: 2px solid rgba(0, 150, 255, 0.5);
+            box-shadow:
+                0 0 30px rgba(0, 100, 255, 0.4),
+                inset 0 0 30px rgba(0, 150, 255, 0.2),
+                0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: logoFloat 3s ease-in-out infinite, logoGlow 2s ease-in-out infinite alternate;
+            transform-style: preserve-3d;
+        }
+
+        .logo-b::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 22px;
+            background: linear-gradient(45deg, #0066ff, #ff6600, #0066ff, #ff6600);
+            background-size: 400% 400%;
+            z-index: -1;
+            animation: borderGlow 4s ease infinite;
+            filter: blur(5px);
+            opacity: 0.7;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0) rotateY(0deg); }
+            50% { transform: translateY(-15px) rotateY(5deg); }
+        }
+
+        @keyframes logoGlow {
+            0% { box-shadow: 0 0 30px rgba(0, 100, 255, 0.4), inset 0 0 30px rgba(0, 150, 255, 0.2); }
+            100% { box-shadow: 0 0 50px rgba(0, 150, 255, 0.6), inset 0 0 40px rgba(0, 150, 255, 0.3); }
+        }
+
+        @keyframes borderGlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* CRYPTOGRAPHYTUBE Title */
+        .title-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .main-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(28px, 6vw, 60px);
+            font-weight: 900;
+            letter-spacing: 6px;
+            color: #ffffff;
+            text-transform: uppercase;
+            position: relative;
+            display: inline-block;
+            animation: titleShine 3s ease-in-out infinite;
+        }
+
+        .main-title span {
+            display: inline-block;
+            animation: letterBounce 1.5s ease-in-out infinite;
+        }
+
+        .main-title span:nth-child(1) { animation-delay: 0s; }
+        .main-title span:nth-child(2) { animation-delay: 0.05s; }
+        .main-title span:nth-child(3) { animation-delay: 0.1s; }
+        .main-title span:nth-child(4) { animation-delay: 0.15s; }
+        .main-title span:nth-child(5) { animation-delay: 0.2s; }
+        .main-title span:nth-child(6) { animation-delay: 0.25s; }
+        .main-title span:nth-child(7) { animation-delay: 0.3s; }
+        .main-title span:nth-child(8) { animation-delay: 0.35s; }
+        .main-title span:nth-child(9) { animation-delay: 0.4s; }
+        .main-title span:nth-child(10) { animation-delay: 0.45s; }
+        .main-title span:nth-child(11) { animation-delay: 0.5s; }
+        .main-title span:nth-child(12) { animation-delay: 0.55s; }
+        .main-title span:nth-child(13) { animation-delay: 0.6s; }
+        .main-title span:nth-child(14) { animation-delay: 0.65s; }
+        .main-title span:nth-child(15) { animation-delay: 0.7s; }
+
+        @keyframes letterBounce {
+            0%, 100% { transform: translateY(0); text-shadow: 0 0 10px rgba(0, 150, 255, 0.5); }
+            50% { transform: translateY(-8px); text-shadow: 0 0 25px rgba(0, 150, 255, 0.9), 0 0 50px rgba(255, 100, 0, 0.5); }
+        }
+
+        @keyframes titleShine {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+            100% { filter: brightness(1); }
+        }
+
+        /* Subtitle */
+        .subtitle {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(12px, 2.5vw, 18px);
+            font-weight: 400;
+            letter-spacing: 8px;
+            color: #ff6600;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            text-shadow: 0 0 15px rgba(255, 100, 0, 0.6);
+            animation: subtitlePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes subtitlePulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        /* Author Name */
+        .author-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(14px, 3vw, 22px);
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: #00aaff;
+            text-transform: uppercase;
+            margin-bottom: 50px;
+            text-shadow: 0 0 15px rgba(0, 170, 255, 0.5);
+            position: relative;
+            padding: 10px 30px;
+            border: 1px solid rgba(0, 170, 255, 0.3);
+            border-radius: 30px;
+            background: rgba(0, 50, 150, 0.2);
+            animation: authorGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes authorGlow {
+            0% { box-shadow: 0 0 10px rgba(0, 170, 255, 0.2); }
+            100% { box-shadow: 0 0 25px rgba(0, 170, 255, 0.4), 0 0 50px rgba(255, 100, 0, 0.2); }
+        }
+
+        /* Social Links Container */
+        .links-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            max-width: 900px;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        /* Social Card */
+        .social-card {
+            position: relative;
+            padding: 25px 20px;
+            border-radius: 15px;
+            text-decoration: none;
+            color: #ffffff;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(10, 20, 50, 0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        .social-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .social-card:hover::before {
+            left: 100%;
+        }
+
+        .social-card:hover {
+            transform: translateY(-10px) rotateX(5deg) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .social-card.telegram:hover {
+            border-color: rgba(0, 150, 255, 0.6);
+            box-shadow: 0 20px 40px rgba(0, 100, 255, 0.3), 0 0 30px rgba(0, 150, 255, 0.2);
+        }
+
+        .social-card.telegram-channel:hover {
+            border-color: rgba(0, 200, 255, 0.6);
+            box-shadow: 0 20px 40px rgba(0, 150, 255, 0.3), 0 0 30px rgba(0, 200, 255, 0.2);
+        }
+
+        .social-card.github:hover {
+            border-color: rgba(255, 100, 0, 0.6);
+            box-shadow: 0 20px 40px rgba(200, 80, 0, 0.3), 0 0 30px rgba(255, 100, 0, 0.2);
+        }
+
+        .social-card.youtube:hover {
+            border-color: rgba(255, 50, 50, 0.6);
+            box-shadow: 0 20px 40px rgba(200, 0, 0, 0.3), 0 0 30px rgba(255, 50, 50, 0.2);
+        }
+
+        .social-icon {
+            font-size: 42px;
+            margin-bottom: 12px;
+            display: block;
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .social-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .social-desc {
+            font-size: 13px;
+            opacity: 0.7;
+            letter-spacing: 1px;
+        }
+
+        /* Telegram specific colors */
+        .social-card.telegram .social-icon { color: #00aaff; text-shadow: 0 0 15px rgba(0, 170, 255, 0.6); }
+        .social-card.telegram-channel .social-icon { color: #00ccff; text-shadow: 0 0 15px rgba(0, 200, 255, 0.6); }
+        .social-card.github .social-icon { color: #ff7700; text-shadow: 0 0 15px rgba(255, 100, 0, 0.6); }
+        .social-card.youtube .social-icon { color: #ff3333; text-shadow: 0 0 15px rgba(255, 50, 50, 0.6); }
+
+        /* Decorative Lines */
+        .deco-line {
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #0066ff, #ff6600, transparent);
+            margin: 30px auto;
+            animation: lineExpand 3s ease-in-out infinite;
+        }
+
+        @keyframes lineExpand {
+            0%, 100% { width: 100px; opacity: 0.5; }
+            50% { width: 200px; opacity: 1; }
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            opacity: 0.5;
+            letter-spacing: 3px;
+            color: #6688cc;
+        }
+
+        /* Scan Line Effect */
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #0066ff, #ff6600, transparent);
+            z-index: 100;
+            animation: scanDown 6s linear infinite;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        @keyframes scanDown {
+            0% { top: -3px; }
+            100% { top: 100vh; }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .links-container {
+                grid-template-columns: 1fr;
+            }
+            .main-title {
+                letter-spacing: 3px;
+            }
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-animation"></div>
+    <div class="grid-lines"></div>
+    <div class="scan-line"></div>
+
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- B Logo -->
+        <div class="logo-container">
+            <div class="logo-b">B</div>
+        </div>
+
+        <!-- Title -->
+        <div class="title-container">
+            <h1 class="main-title">
+                <span>C</span><span>R</span><span>Y</span><span>P</span><span>T</span><span>O</span><span>G</span><span>R</span><span>A</span><span>P</span><span>H</span><span>Y</span><span>T</span><span>U</span><span>B</span><span>E</span>
+            </h1>
+        </div>
+
+        <!-- Subtitle -->
+        <div class="subtitle">Cryptography & Blockchain Community</div>
+
+        <!-- Author -->
+        <div class="author-name">By SISUJHON</div>
+
+        <div class="deco-line"></div>
+
+        <!-- Social Links -->
+        <div class="links-container">
+            <a href="https://t.me/cryptographytube" target="_blank" class="social-card telegram">
+                <span class="social-icon">&#9993;</span>
+                <div class="social-name">Telegram Group</div>
+                <div class="social-desc">@cryptographytube</div>
+            </a>
+
+            <a href="https://t.me/cryptographytubeofficial" target="_blank" class="social-card telegram-channel">
+                <span class="social-icon">&#128172;</span>
+                <div class="social-name">Telegram Channel</div>
+                <div class="social-desc">@cryptographytubeofficial</div>
+            </a>
+
+            <a href="https://github.com/Cryptographytube" target="_blank" class="social-card github">
+                <span class="social-icon">&#10022;</span>
+                <div class="social-name">GitHub</div>
+                <div class="social-desc">Cryptographytube</div>
+            </a>
+
+            <a href="https://www.youtube.com/@cryptographytube" target="_blank" class="social-card youtube">
+                <span class="social-icon">&#9654;</span>
+                <div class="social-name">YouTube</div>
+                <div class="social-desc">@cryptographytube</div>
+            </a>
+        </div>
+
+        <div class="deco-line"></div>
+
+        <!-- Footer -->
+        <div class="footer">CRYPTOGRAPHYTUBE &copy; 2026 | ALL RIGHTS RESERVED</div>
+    </div>
+
+    <script>
+        // Generate floating particles
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = 50;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 10 + 5) + 's';
+            particle.style.animationDelay = Math.random() * 10 + 's';
+            particle.style.width = (Math.random() * 4 + 2) + 'px';
+            particle.style.height = particle.style.width;
+            particlesContainer.appendChild(particle);
+        }
+
+        // 3D tilt effect on cards
+        document.querySelectorAll('.social-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = (y - centerY) / 10;
+                const rotateY = (centerX - x) / 10;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-10px) scale(1.05)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0) scale(1)';
+            });
+        });
+
+        // Mouse trail effect
+        document.addEventListener('mousemove', (e) => {
+            const trail = document.createElement('div');
+            trail.style.position = 'fixed';
+            trail.style.left = e.clientX + 'px';
+            trail.style.top = e.clientY + 'px';
+            trail.style.width = '6px';
+            trail.style.height = '6px';
+            trail.style.borderRadius = '50%';
+            trail.style.background = 'rgba(0, 150, 255, 0.6)';
+            trail.style.pointerEvents = 'none';
+            trail.style.zIndex = '999';
+            trail.style.boxShadow = '0 0 10px rgba(0, 150, 255, 0.8)';
+            trail.style.transition = 'all 1s ease';
+            document.body.appendChild(trail);
+
+            setTimeout(() => {
+                trail.style.opacity = '0';
+                trail.style.transform = 'scale(0)';
+            }, 10);
+
+            setTimeout(() => {
+                trail.remove();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
