@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="./assets/js/localhost-fix.js"></script>
+    <!-- Theme init FIRST (prevent flash) -->
+    <script>
+        (function() {
+            var theme = localStorage.getItem('cgt-theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            window.CGT_DEFAULT_THEME = 'light';
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title>FAQ - Bitcoin Private Keys &amp; Cryptocurrency Questions</title>
+    <meta name="title" content="FAQ - Bitcoin Private Keys &amp; Cryptocurrency Questions">
+    <meta name="description" content="Learn about Bitcoin private keys, secp256k1 cryptography, address generation, WIF format, BIP39 mnemonics, and blockchain security. Technical documentation and guides.">
+    <meta name="keywords" content="bitcoin faq, private key questions, cryptocurrency guide, secp256k1 explained, wif format, bip39 tutorial, blockchain education">
+    <meta name="author" content="CryptographyTube">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <link rel="canonical" href="http://cryptographytube.org/faq">
+
+    
+    <!-- Language -->
+    <meta http-equiv="content-language" content="en">
+    <link rel="alternate" hreflang="en" href="http://cryptographytube.org/faq">
+    <link rel="alternate" hreflang="x-default" href="http://cryptographytube.org/faq">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://cryptographytube.org/faq">
+    <meta property="og:title" content="FAQ - Bitcoin Private Keys &amp; Cryptocurrency Questions">
+    <meta property="og:description" content="Learn about Bitcoin private keys, secp256k1 cryptography, address generation, WIF format, BIP39 mnemonics, and blockchain security. Technical documentation and guides.">
+    <meta property="og:site_name" content="CryptographyTube">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:image" content="http://cryptographytube.org/assets/png/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="CryptographyTube">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@cryptographytube">
+    <meta name="twitter:title" content="FAQ - Bitcoin Private Keys &amp; Cryptocurrency Questions">
+    <meta name="twitter:description" content="Learn about Bitcoin private keys, secp256k1 cryptography, address generation, WIF format, BIP39 mnemonics, and blockchain security. Technical documentation and guides.">
+    <meta name="twitter:image" content="http://cryptographytube.org/assets/png/og-image.png">
+
+    <!-- Additional SEO Meta -->
+    <meta name="application-name" content="CryptographyTube">
+    <meta name="apple-mobile-web-app-title" content="CryptographyTube">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/png/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./assets/png/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./assets/png/apple-touch-icon.png">
+    <link rel="manifest" href="./assets/site.webmanifest">
+    <meta name="theme-color" content="#f7931a">
+    <meta name="msapplication-TileColor" content="#f7931a">
+
+        <!-- Google Analytics (lazy load on user interaction) -->
+    <script>
+        (function(){
+            var loaded = false;
+            function loadGA() {
+                if (loaded) return;
+                loaded = true;
+                var s = document.createElement('script');
+                s.src = 'https://www.googletagmanager.com/gtag/js?id=G-81K6WGXWET';
+                s.async = true;
+                document.head.appendChild(s);
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                window.gtag = gtag;
+                gtag('js', new Date());
+                gtag('config', 'G-81K6WGXWET');
+                ['mousemove','scroll','keydown','click','touchstart'].forEach(function(e){
+                    document.removeEventListener(e, loadGA);
+                });
+            }
+            ['mousemove','scroll','keydown','click','touchstart'].forEach(function(e){
+                document.addEventListener(e, loadGA, {once: true, passive: true});
+            });
+            setTimeout(loadGA, 4000);
+        })();
+    </script>
+
+    <!-- Google AdSense (lazy load on user interaction) -->
+    <script>
+        (function(){
+            var loaded = false;
+            function loadAds() {
+                if (loaded) return;
+                loaded = true;
+                var s = document.createElement('script');
+                s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+                s.async = true;
+                s.crossOrigin = 'anonymous';
+                s.onload = function() {
+                    var ads = document.querySelectorAll('.adsbygoogle');
+                    ads.forEach(function(ad) {
+                        if (!ad.dataset.adsbygoogleStatus) {
+                            (adsbygoogle = window.adsbygoogle || []).push({});
+                        }
+                    });
+                };
+                document.head.appendChild(s);
+                ['scroll','click','keydown','touchstart','mousemove'].forEach(function(e){
+                    window.removeEventListener(e, loadAds);
+                });
+            }
+            ['scroll','click','keydown','touchstart','mousemove'].forEach(function(e){
+                window.addEventListener(e, loadAds, {once: true, passive: true});
+            });
+            setTimeout(loadAds, 5000);
+        })();
+    </script>
+    
+    <!-- Preconnect (high priority for critical resources) -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com">
+        <link rel="dns-prefetch" href="https://blockchain.info">
+    <link rel="dns-prefetch" href="https://api.etherscan.io">
+
+    <!-- Preload critical assets -->
+    <link rel="preload" href="./assets/css/bootstrap-purged.min.css" as="style">
+    <link rel="preload" href="./assets/css/style.min.css" as="style">
+
+    <!-- Critical CSS (inline for fast first paint) -->
+    <style>/* CryptographyTube Critical CSS - Inlined for fast first paint */
+:root,[data-bs-theme="light"]{--cgt-bg:#f5f5f5;--cgt-bg-secondary:#fff;--cgt-text:#212529;--cgt-border:#dee2e6;--cgt-primary:#0d6efd;--cgt-navbar-bg:rgba(255,255,255,.98);--navbar-height:56px}
+[data-bs-theme="dark"]{--cgt-bg:#121212;--cgt-bg-secondary:#1e1e1e;--cgt-text:#e9ecef;--cgt-border:#333;--cgt-primary:#60a5fa;--cgt-navbar-bg:rgba(30,30,30,.98)}
+*,::after,::before{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--cgt-bg);color:var(--cgt-text);display:flex;flex-direction:column;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+.main-content{flex:1;padding-top:calc(var(--navbar-height) + 1rem);padding-bottom:1rem}
+.navbar{position:fixed;top:0;left:0;right:0;z-index:1030;background:var(--cgt-navbar-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--cgt-border);height:var(--navbar-height);display:flex;align-items:center}
+.navbar .container{display:flex;align-items:center;width:100%;max-width:1320px;margin:0 auto;padding:0 1rem}
+.navbar-brand{display:flex;align-items:center;text-decoration:none;color:var(--cgt-text)}
+.cgt-logo{display:flex;align-items:center;gap:.5rem}
+.cgt-logo-text{font-weight:700;font-size:1.1rem}
+.container{width:100%;max-width:1320px;margin:0 auto;padding:0 1rem}
+.loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:9999}
+.loading-overlay.show{display:flex}
+.spinner-border{width:2rem;height:2rem;border:.25em solid currentColor;border-right-color:transparent;border-radius:50%;animation:spinner .75s linear infinite}
+@keyframes spinner{to{transform:rotate(360deg)}}
+.global-search-trigger{display:flex;align-items:center;gap:.75rem;padding:.625rem 1rem;background:var(--cgt-bg-secondary);border:1px solid var(--cgt-border);border-radius:8px;cursor:pointer;max-width:480px}
+.global-search-placeholder{flex:1;color:#6c757d;font-size:.875rem}
+/* Collapse */
+.collapse:not(.show){display:none}
+.collapse.show{display:block}
+.collapsing{height:0;overflow:hidden;transition:height .3s cubic-bezier(0.4,0,0.2,1)}
+/* Navbar collapse & toggler */
+.navbar-toggler{padding:.25rem .75rem;font-size:1.25rem;background:transparent;border:1px solid transparent;border-radius:.375rem;cursor:pointer}
+.navbar-toggler-icon{display:inline-block;width:1.5em;height:1.5em;background-repeat:no-repeat;background-position:center;background-size:100%;transition:transform .25s cubic-bezier(0.4,0,0.2,1),opacity .15s;background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2833,37,41,0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e")}
+[data-bs-theme="dark"] .navbar-toggler-icon{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255,255,255,0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e")}
+.navbar-toggler[aria-expanded="true"] .navbar-toggler-icon{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2833,37,41,0.75%29' stroke-linecap='round' stroke-width='2' d='M7 7l16 16M7 23l16-16'/%3e%3c/svg%3e")}
+[data-bs-theme="dark"] .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255,255,255,0.75%29' stroke-linecap='round' stroke-width='2' d='M7 7l16 16M7 23l16-16'/%3e%3c/svg%3e")}
+@media (max-width:1199.98px){.navbar-collapse{position:absolute;top:100%;left:0;right:0;background:var(--cgt-navbar-bg);border-bottom:1px solid var(--cgt-border);padding:1rem;z-index:1020;box-shadow:0 4px 6px rgba(0,0,0,.1)}.navbar-nav{flex-direction:column}.nav-link{padding:.5rem 0}}
+/* Bootstrap grid basics - prevent CLS */
+.row{display:flex;flex-wrap:wrap;margin-right:-.75rem;margin-left:-.75rem}
+.row>*{flex-shrink:0;width:100%;max-width:100%;padding-right:.75rem;padding-left:.75rem}
+.g-3{--bs-gutter-x:.75rem;--bs-gutter-y:.75rem;margin-top:calc(-.75rem)}
+.g-3>*{padding-right:calc(var(--bs-gutter-x) * .5);padding-left:calc(var(--bs-gutter-x) * .5);margin-top:var(--bs-gutter-y)}
+.justify-content-center{justify-content:center}
+.text-center{text-align:center}
+.mb-3{margin-bottom:1rem}
+.mb-4{margin-bottom:1.5rem}
+.h2{font-size:1.5rem}
+.fw-bold{font-weight:700}
+.lead{font-size:1.1rem;font-weight:300}
+.text-muted{color:#6c757d}
+[data-bs-theme="dark"] .text-muted{color:#9ca3af}
+.col-12{flex:0 0 auto;width:100%}
+@media (min-width:576px){.col-sm-6{flex:0 0 auto;width:50%}}
+@media (min-width:768px){.col-md-3{flex:0 0 auto;width:25%}}
+/* Header */
+header{margin-bottom:1.5rem}
+/* Tool cards - prevent CLS */
+.tool-card{display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:1.25rem 1rem;background:var(--cgt-bg-secondary);border:1px solid var(--cgt-border);border-radius:12px;text-decoration:none;color:var(--cgt-text);text-align:center;height:100%;min-height:160px}
+.tool-card-icon{width:48px;height:48px;display:flex;align-items:center;justify-content:center}
+.tool-card-icon img{width:100%;height:100%;object-fit:contain}
+.tool-card-name{font-size:.9rem;font-weight:600;line-height:1.3}
+.tool-card-desc{font-size:.75rem;color:#6c757d;line-height:1.4}
+/* FA icons - prevent CLS */
+.fa-icon{display:inline-block;vertical-align:-.125em}
+.module-icon{display:inline-block}
+</style>
+
+    <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is this site for?","acceptedAnswer":{"@type":"Answer","text":"CryptographyTube is an educational tool for exploring cryptocurrency private keys and addresses. It allows you to browse the entire private key space, generate addresses for multiple blockchains, explore the Bitcoin Puzzle challenge, and learn about brainwallets and mnemonic phrases."}},{"@type":"Question","name":"Do you store all the private keys?","acceptedAnswer":{"@type":"Answer","text":"No. Private keys are not pre-stored. They are calculated on-the-fly in your browser using client-side JavaScript cryptographic libraries. The entire key space (2^256 keys) would require more storage than exists on Earth."}},{"@type":"Question","name":"What are the odds of guessing a Bitcoin private key?","acceptedAnswer":{"@type":"Answer","text":"The odds are astronomically small - essentially zero. With approximately 10^77 total private keys and only about 50 million active addresses, the probability is around 5 × 10^-70. Even checking 1 trillion keys per second for the age of the universe would not find a single funded key."}},{"@type":"Question","name":"Can I get the private key for a Bitcoin address?","acceptedAnswer":{"@type":"Answer","text":"No. This is mathematically impossible due to the one-way nature of cryptographic hash functions. The process from private key to address uses elliptic curve multiplication and hash functions that cannot be reversed."}},{"@type":"Question","name":"What is a Private Key?","acceptedAnswer":{"@type":"Answer","text":"A Private Key is a 256-bit random number represented as 64 hexadecimal characters. It is used to sign transactions and derive public keys using elliptic curve multiplication on the secp256k1 curve."}},{"@type":"Question","name":"What is WIF (Wallet Import Format)?","acceptedAnswer":{"@type":"Answer","text":"WIF is a Base58Check encoded representation of a Bitcoin private key. It includes a version byte, the private key, an optional compression flag, and a 4-byte checksum. Keys starting with 5 are uncompressed, while K or L indicate compressed keys."}},{"@type":"Question","name":"What is a Mnemonic / Seed Phrase?","acceptedAnswer":{"@type":"Answer","text":"A Mnemonic is a sequence of 12-24 words (BIP39) that represents entropy for generating a master seed. The words are converted using PBKDF2 with 2048 iterations to create a 512-bit seed for HD wallet derivation."}},{"@type":"Question","name":"What is the Bitcoin Puzzle?","acceptedAnswer":{"@type":"Answer","text":"The Bitcoin Puzzle is a challenge created in 2015 with approximately 1000 BTC distributed across 160 addresses. Each puzzle has its private key within a specific bit range, making some solvable with sufficient computing power."}},{"@type":"Question","name":"Why are brainwallets dangerous?","acceptedAnswer":{"@type":"Answer","text":"Brainwallets derive private keys from passphrases using SHA256. Human-chosen phrases have low entropy, making them vulnerable to dictionary attacks. Bots constantly scan the blockchain for funds sent to weak brainwallet addresses."}}]}</script>
+        <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"http://cryptographytube.org/"},{"@type":"ListItem","position":2,"name":"FAQ"}]}</script>
+    
+    <!-- Bootstrap CSS (sync load to prevent CLS) -->
+    <link href="./assets/css/bootstrap-purged.min.css" rel="stylesheet">
+
+    <!-- Custom CSS (sync load to prevent CLS) -->
+    <link href="./assets/css/style.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- ========== NAVBAR ========== -->
+    <nav class="navbar navbar-expand-xl fixed-top">
+        <div class="container">
+            <!-- Brand -->
+            <a class="navbar-brand d-flex align-items-center" href="./index.html">
+                <span class="cgt-logo">
+                    <span class="cgt-logo-icon"><img src="./assets/svgs/solid/key.svg" class="fa-icon " width="18" height="18" alt=""></span>
+                    <span class="cgt-logo-text"><span>CRYPTOGRAPHYTUBE.ORG</span></span>
+                </span>
+            </a>
+
+            <!-- Header Actions (pill container) -->
+            <div class="navbar-actions order-xl-last">
+                <button class="navbar-action-btn" id="walletSearchBtn" title="Search Wallet" data-bs-toggle="modal" data-bs-target="#walletSearchModal">
+                    <img src="./assets/svgs/solid/magnifying-glass.svg" class="fa-icon " width="15" height="15" alt="">                </button>
+                <button class="navbar-action-btn" id="themeToggle" title="Toggle theme">
+                    <span id="themeIconLight"><img src="./assets/svgs/solid/sun.svg" class="fa-icon " width="15" height="15" alt=""></span>
+                    <span id="themeIconDark"><img src="./assets/svgs/solid/moon.svg" class="fa-icon " width="15" height="15" alt=""></span>
+                </button>
+                <a href="https://t.me/cryptographytubeofficial" class="navbar-action-btn navbar-action-tg" title="Telegram" target="_blank" rel="noopener">
+                    <img src="./assets/svgs/brands/telegram.svg" class="fa-icon " width="16" height="16" alt="">                </a>
+            </div>
+
+            <!-- Mobile Toggle -->
+            <button class="navbar-toggler border-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-label="Toggle navigation" aria-controls="navbarMain" aria-expanded="false">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Nav Content -->
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <!-- Main Nav -->
+                <ul class="navbar-nav me-auto mb-2 mb-xl-0">
+                                        <li class="nav-item">
+                        <a class="nav-link "
+                           href="./private-keys.html">
+                            <img src="./assets/svgs/solid/key.svg" class="fa-icon me-1" width="14" height="14" alt="">                            Directory                        </a>
+                    </li>
+                                        <li class="nav-item">
+                        <a class="nav-link "
+                           href="./mnemonic-seeds.html">
+                            <img src="./assets/svgs/solid/seedling.svg" class="fa-icon me-1" width="14" height="14" alt="">                            Seed Phrases                        </a>
+                    </li>
+                                        <li class="nav-item">
+                        <a class="nav-link "
+                           href="./bitcoin-puzzle.html">
+                            <img src="./assets/svgs/solid/puzzle-piece.svg" class="fa-icon me-1" width="14" height="14" alt="">                            BTC Puzzle                        </a>
+                    </li>
+                                        <li class="nav-item">
+                        <a class="nav-link "
+                           href="./mnemonic-converter.html">
+                            <img src="./assets/svgs/solid/seedling.svg" class="fa-icon me-1" width="14" height="14" alt="">                            Mnemonic                        </a>
+                    </li>
+                                        <li class="nav-item">
+                        <a class="nav-link "
+                           href="./vanity-generator.html">
+                            <img src="./assets/svgs/solid/wand-magic-sparkles.svg" class="fa-icon me-1" width="14" height="14" alt="">                            Vanity                        </a>
+                    </li>
+                                        <li class="nav-item">
+                        <a class="nav-link "
+                           href="./milk-sad.html">
+                            <img src="./assets/svgs/solid/bug.svg" class="fa-icon me-1" width="14" height="14" alt="">                            Milk Sad                        </a>
+                    </li>
+                                        <!-- HelioWallet - External Link -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://heliowallet.com/" target="_blank" rel="noopener">
+                            <img src="./assets/svgs/solid/wallet.svg" class="fa-icon me-1" width="14" height="14" alt="">                            Wallet
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ========== MAIN ========== -->
+    <main class="main-content">
+        <!-- Global Search Bar -->
+        <div class="container mb-3">
+            <div class="global-search-trigger" data-bs-toggle="modal" data-bs-target="#walletSearchModal">
+                <span class="global-search-icon"><img src="./assets/svgs/solid/magnifying-glass.svg" class="fa-icon " width="14" height="14" alt=""></span>
+                <span class="global-search-placeholder">Search key, WIF, mnemonic across 18 chains</span>
+                <span class="global-search-shortcut">
+                    <kbd>Ctrl</kbd><kbd>K</kbd>
+                </span>
+            </div>
+        </div>
+
+                <!-- Breadcrumb -->
+        <div class="container mb-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                                                            <li class="breadcrumb-item ">
+                                                                        <a href="./index.html">
+                            <img src="./assets/svgs/solid/house.svg" class="fa-icon " width="14" height="14" alt="">Home                        </a>
+                                            </li>
+                                        <li class="breadcrumb-item active" aria-current="page">
+                                                                        <span><img src="./assets/svgs/solid/circle-question.svg" class="fa-icon " width="14" height="14" alt="">FAQ</span>
+                                            </li>
+                                    </ol>
+            </nav>
+        </div>
+        
+        <!-- Page Content -->
+            <div class="container py-4">
+        <!-- Header -->
+        <header class="text-center mb-5">
+            <h1 class="h2 mb-3">
+                <img src="./assets/svgs/solid/circle-question.svg" class="fa-icon text-primary me-2" width="28" height="28" alt="">                Frequently Asked Questions
+            </h1>
+            <p class="lead text-muted">Bitcoin private keys, cryptocurrency terminology, and technical documentation</p>
+        </header>
+
+        <!-- FAQ Sections -->
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+
+                <!-- General Questions Section -->
+                <section class="faq-section mb-4">
+                    <h2 class="faq-section-title mb-3">
+                        <img src="./assets/svgs/solid/circle-info.svg" class="fa-icon me-2" width="18" height="18" alt="">                        General Questions
+                    </h2>
+
+                    <div class="accordion" id="faqGeneral">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#gen1">
+                                    What is this site for?
+                                </button>
+                            </h2>
+                            <div id="gen1" class="accordion-collapse collapse show" data-bs-parent="#faqGeneral">
+                                <div class="accordion-body">
+                                    <p>CryptographyTube is an educational tool for exploring cryptocurrency private keys and addresses. It allows you to:</p>
+                                    <ul>
+                                        <li>Browse the entire private key space organized into pages</li>
+                                        <li>Generate addresses from private keys for multiple blockchains</li>
+                                        <li>Explore the Bitcoin Puzzle challenge</li>
+                                        <li>Learn about brainwallets and their vulnerabilities</li>
+                                        <li>Convert mnemonic phrases to addresses</li>
+                                        <li>Generate vanity addresses</li>
+                                    </ul>
+                                    <p class="mb-0">All operations are performed client-side in your browser using JavaScript cryptographic libraries.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gen2">
+                                    What is Bitcoin?
+                                </button>
+                            </h2>
+                            <div id="gen2" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+                                <div class="accordion-body">
+                                    <p><strong>Bitcoin</strong> is a decentralized digital currency created in 2009 by an anonymous person/group known as Satoshi Nakamoto.</p>
+                                    <p><strong>Key properties:</strong></p>
+                                    <ul>
+                                        <li><strong>Decentralized:</strong> No central authority controls Bitcoin</li>
+                                        <li><strong>Limited supply:</strong> Maximum 21 million BTC will ever exist</li>
+                                        <li><strong>Blockchain:</strong> All transactions are recorded on a public ledger</li>
+                                        <li><strong>Cryptographic:</strong> Uses elliptic curve cryptography (secp256k1) for key generation and signatures</li>
+                                    </ul>
+                                    <p class="mb-0"><strong>Smallest unit:</strong> 1 satoshi = 0.00000001 BTC</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gen3">
+                                    Do you store all the private keys?
+                                </button>
+                            </h2>
+                            <div id="gen3" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+                                <div class="accordion-body">
+                                    <p><strong>No.</strong> Private keys are not pre-stored. They are calculated on-the-fly in your browser.</p>
+                                    <p><strong>How it works:</strong></p>
+                                    <ul>
+                                        <li>When you visit a page, your browser calculates the private keys for that page</li>
+                                        <li>Keys are derived mathematically from the page number</li>
+                                        <li>Key generation uses client-side JavaScript cryptographic libraries</li>
+                                    </ul>
+                                    <p class="mb-0">The entire key space (2²⁵⁶ keys) would require more storage than exists on Earth to store.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gen4">
+                                    What are the odds of guessing a Bitcoin private key?
+                                </button>
+                            </h2>
+                            <div id="gen4" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+                                <div class="accordion-body">
+                                    <p>The odds are astronomically small - essentially <strong>zero</strong>.</p>
+                                    <p><strong>The math:</strong></p>
+                                    <ul>
+                                        <li>Total private keys: ~2²⁵⁶ ≈ 10⁷⁷</li>
+                                        <li>Active Bitcoin addresses: ~50 million ≈ 5 × 10⁷</li>
+                                        <li>Probability: 5 × 10⁷ / 10⁷⁷ = 5 × 10⁻⁷⁰</li>
+                                    </ul>
+                                    <p><strong>For comparison:</strong></p>
+                                    <ul>
+                                        <li>Atoms in observable universe: ~10⁸⁰</li>
+                                        <li>Winning lottery 10 times in a row: ~10⁻⁷⁰</li>
+                                    </ul>
+                                    <p class="mb-0">Even checking 1 trillion keys per second for the age of the universe wouldn't find a single funded key by chance.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gen5">
+                                    I have a Bitcoin address, can I get the private key for it?
+                                </button>
+                            </h2>
+                            <div id="gen5" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+                                <div class="accordion-body">
+                                    <p><strong>No.</strong> This is mathematically impossible due to the one-way nature of cryptographic hash functions.</p>
+                                    <p><strong>The process is one-way:</strong></p>
+                                    <ol>
+                                        <li>Private Key → Public Key (elliptic curve multiplication) - <strong>cannot reverse</strong></li>
+                                        <li>Public Key → Address (hash functions) - <strong>cannot reverse</strong></li>
+                                    </ol>
+                                    <p><strong>Why it's impossible:</strong></p>
+                                    <ul class="mb-0">
+                                        <li>Elliptic Curve Discrete Logarithm Problem (ECDLP) - no efficient algorithm exists</li>
+                                        <li>Hash functions are designed to be irreversible</li>
+                                        <li>This is the foundation of cryptocurrency</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gen6">
+                                    How do you get addresses for a private key without knowing the key?
+                                </button>
+                            </h2>
+                            <div id="gen6" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+                                <div class="accordion-body">
+                                    <p>You can't directly, but you can enumerate all possible addresses for each private key because the derivation is <strong>deterministic</strong>.</p>
+                                    <p><strong>One private key → Multiple addresses:</strong></p>
+                                    <ul>
+                                        <li>Legacy compressed (1...)</li>
+                                        <li>Legacy uncompressed (1...)</li>
+                                        <li>SegWit (bc1q...)</li>
+                                        <li>Nested SegWit (3...)</li>
+                                        <li>Taproot (bc1p...)</li>
+                                        <li>Ethereum (0x...)</li>
+                                        <li>Tron (T...)</li>
+                                    </ul>
+                                    <p class="mb-0">CGT shows all these address types for each private key on the page.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gen7">
+                                    Why are P2TR (Taproot) addresses the same for first and last private keys?
+                                </button>
+                            </h2>
+                            <div id="gen7" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+                                <div class="accordion-body">
+                                    <p>This is due to how Taproot uses <strong>x-only public keys</strong> and the mathematical properties of elliptic curves.</p>
+                                    <p><strong>Technical explanation:</strong></p>
+                                    <ul>
+                                        <li>Taproot uses only the X coordinate of the public key (32 bytes)</li>
+                                        <li>For any X coordinate, there are two valid Y values (one even, one odd)</li>
+                                        <li>Private key <code>k</code> and <code>n - k</code> (where n is curve order) produce public keys with the same X coordinate but opposite Y values</li>
+                                    </ul>
+                                    <p><strong>Example:</strong></p>
+                                    <ul class="mb-0">
+                                        <li>Key 1: <code>0x1</code></li>
+                                        <li>Key n-1: <code>0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140</code></li>
+                                        <li>Both produce the same Taproot address</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Terminology Section -->
+                <section class="faq-section mb-4">
+                    <h2 class="faq-section-title mb-3">
+                        <img src="./assets/svgs/solid/book.svg" class="fa-icon me-2" width="18" height="18" alt="">                        Terminology
+                    </h2>
+
+                    <div class="accordion" id="faqTerminology">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#term1">
+                                    Private Key
+                                </button>
+                            </h2>
+                            <div id="term1" class="accordion-collapse collapse show" data-bs-parent="#faqTerminology">
+                                <div class="accordion-body">
+                                    <p>A <strong>Private Key</strong> is a 256-bit random number represented as 64 hexadecimal characters. It's used to:</p>
+                                    <ul>
+                                        <li>Sign transactions (digital signature)</li>
+                                        <li>Derive public key using elliptic curve multiplication</li>
+                                    </ul>
+                                    <p><strong>Valid range:</strong> <code>1</code> to <code>FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140</code> (secp256k1 curve order - 1)</p>
+                                    <p class="mb-0"><strong>Example:</strong> <code>0000000000000000000000000000000000000000000000000000000000000001</code></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term2">
+                                    Public Key
+                                </button>
+                            </h2>
+                            <div id="term2" class="accordion-collapse collapse" data-bs-parent="#faqTerminology">
+                                <div class="accordion-body">
+                                    <p>A <strong>Public Key</strong> is derived from the private key using elliptic curve point multiplication on the secp256k1 curve.</p>
+                                    <p><strong>Two formats:</strong></p>
+                                    <ul>
+                                        <li><strong>Uncompressed (65 bytes):</strong> <code>04</code> + X coordinate (32 bytes) + Y coordinate (32 bytes)</li>
+                                        <li><strong>Compressed (33 bytes):</strong> <code>02</code> or <code>03</code> (parity of Y) + X coordinate (32 bytes)</li>
+                                    </ul>
+                                    <p class="mb-0"><strong>Formula:</strong> <code>Public Key = Private Key × G</code> (where G is the generator point)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term3">
+                                    Address
+                                </button>
+                            </h2>
+                            <div id="term3" class="accordion-collapse collapse" data-bs-parent="#faqTerminology">
+                                <div class="accordion-body">
+                                    <p>An <strong>Address</strong> is a hash of the public key, encoded in a human-readable format. Different blockchains use different address formats:</p>
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr><th>Blockchain</th><th>Format</th><th>Example</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr><td>Bitcoin (Legacy)</td><td>Base58Check</td><td><code>1BvBMSE...</code></td></tr>
+                                            <tr><td>Bitcoin (SegWit)</td><td>Bech32</td><td><code>bc1qw508...</code></td></tr>
+                                            <tr><td>Ethereum/EVM</td><td>Hex + Checksum</td><td><code>0x7E5F4...</code></td></tr>
+                                            <tr><td>Tron</td><td>Base58Check</td><td><code>T9yD14N...</code></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term4">
+                                    WIF (Wallet Import Format)
+                                </button>
+                            </h2>
+                            <div id="term4" class="accordion-collapse collapse" data-bs-parent="#faqTerminology">
+                                <div class="accordion-body">
+                                    <p><strong>WIF</strong> is a Base58Check encoded representation of a Bitcoin private key.</p>
+                                    <p><strong>Structure:</strong></p>
+                                    <ul>
+                                        <li><code>0x80</code> (version byte) + Private Key (32 bytes) + [<code>0x01</code> if compressed] + Checksum (4 bytes)</li>
+                                    </ul>
+                                    <p><strong>Prefix indicators:</strong></p>
+                                    <ul>
+                                        <li><code>5</code> - Uncompressed (51 characters)</li>
+                                        <li><code>K</code> or <code>L</code> - Compressed (52 characters)</li>
+                                    </ul>
+                                    <p class="mb-0"><strong>Checksum:</strong> First 4 bytes of <code>SHA256(SHA256(payload))</code></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term5">
+                                    Mnemonic / Seed Phrase (BIP39)
+                                </button>
+                            </h2>
+                            <div id="term5" class="accordion-collapse collapse" data-bs-parent="#faqTerminology">
+                                <div class="accordion-body">
+                                    <p>A <strong>Mnemonic</strong> is a sequence of words (12, 15, 18, 21, or 24) that represents entropy for generating a master seed.</p>
+                                    <p><strong>Process:</strong></p>
+                                    <ol>
+                                        <li>Generate entropy (128-256 bits)</li>
+                                        <li>Add checksum (entropy → SHA256 → first N bits)</li>
+                                        <li>Split into 11-bit groups → Map to wordlist (2048 words)</li>
+                                        <li>Mnemonic + Passphrase → PBKDF2 (2048 iterations) → 512-bit Seed</li>
+                                    </ol>
+                                    <p class="mb-0"><strong>Wordlist:</strong> BIP39 defines wordlists in multiple languages (English, Japanese, etc.)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term6">
+                                    Derivation Path (BIP32/44/49/84)
+                                </button>
+                            </h2>
+                            <div id="term6" class="accordion-collapse collapse" data-bs-parent="#faqTerminology">
+                                <div class="accordion-body">
+                                    <p>A <strong>Derivation Path</strong> specifies how to derive child keys from a master seed using HD (Hierarchical Deterministic) wallets.</p>
+                                    <p><strong>Format:</strong> <code>m / purpose' / coin_type' / account' / change / address_index</code></p>
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr><th>BIP</th><th>Path</th><th>Address Type</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr><td>BIP44</td><td><code>m/44'/0'/0'/0/0</code></td><td>Legacy (1...)</td></tr>
+                                            <tr><td>BIP49</td><td><code>m/49'/0'/0'/0/0</code></td><td>Nested SegWit (3...)</td></tr>
+                                            <tr><td>BIP84</td><td><code>m/84'/0'/0'/0/0</code></td><td>Native SegWit (bc1q...)</td></tr>
+                                            <tr><td>BIP86</td><td><code>m/86'/0'/0'/0/0</code></td><td>Taproot (bc1p...)</td></tr>
+                                        </tbody>
+                                    </table>
+                                    <p class="mb-0"><strong>Hardened derivation (<code>'</code>):</strong> Uses private key; cannot derive child public keys from parent public key.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Cryptographic Algorithms -->
+                <section class="faq-section mb-4">
+                    <h2 class="faq-section-title mb-3">
+                        <img src="./assets/svgs/solid/lock.svg" class="fa-icon me-2" width="18" height="18" alt="">                        Cryptographic Algorithms
+                    </h2>
+
+                    <div class="accordion" id="faqCrypto">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#crypto1">
+                                    secp256k1 (Elliptic Curve)
+                                </button>
+                            </h2>
+                            <div id="crypto1" class="accordion-collapse collapse" data-bs-parent="#faqCrypto">
+                                <div class="accordion-body">
+                                    <p><strong>secp256k1</strong> is the elliptic curve used by Bitcoin, Ethereum, and most cryptocurrencies.</p>
+                                    <p><strong>Parameters:</strong></p>
+                                    <ul>
+                                        <li><strong>Curve:</strong> <code>y² = x³ + 7</code> (mod p)</li>
+                                        <li><strong>p:</strong> <code>2²⁵⁶ - 2³² - 977</code> (field prime)</li>
+                                        <li><strong>n:</strong> <code>FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141</code> (curve order)</li>
+                                        <li><strong>G:</strong> Generator point (predefined)</li>
+                                    </ul>
+                                    <p class="mb-0"><strong>Operations:</strong> Point addition, scalar multiplication (used for public key derivation and signatures)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#crypto2">
+                                    SHA256 (Secure Hash Algorithm)
+                                </button>
+                            </h2>
+                            <div id="crypto2" class="accordion-collapse collapse" data-bs-parent="#faqCrypto">
+                                <div class="accordion-body">
+                                    <p><strong>SHA256</strong> is a cryptographic hash function that produces a 256-bit (32-byte) digest.</p>
+                                    <p><strong>Properties:</strong></p>
+                                    <ul>
+                                        <li><strong>Deterministic:</strong> Same input always produces same output</li>
+                                        <li><strong>One-way:</strong> Cannot reverse to get input from output</li>
+                                        <li><strong>Collision-resistant:</strong> Infeasible to find two inputs with same output</li>
+                                        <li><strong>Avalanche effect:</strong> Small input change → completely different output</li>
+                                    </ul>
+                                    <p class="mb-0"><strong>Usage in crypto:</strong> Address generation, checksums, mining (PoW), transaction hashing</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#crypto3">
+                                    RIPEMD160
+                                </button>
+                            </h2>
+                            <div id="crypto3" class="accordion-collapse collapse" data-bs-parent="#faqCrypto">
+                                <div class="accordion-body">
+                                    <p><strong>RIPEMD160</strong> is a 160-bit hash function used in Bitcoin address generation.</p>
+                                    <p><strong>Bitcoin Address Hash:</strong> <code>RIPEMD160(SHA256(public_key))</code> - also called <strong>Hash160</strong></p>
+                                    <p><strong>Why 160-bit?</strong></p>
+                                    <ul class="mb-0">
+                                        <li>Shorter addresses (20 bytes vs 32 bytes)</li>
+                                        <li>160-bit still provides sufficient collision resistance</li>
+                                        <li>Reduces blockchain storage requirements</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#crypto4">
+                                    Keccak256 (SHA3)
+                                </button>
+                            </h2>
+                            <div id="crypto4" class="accordion-collapse collapse" data-bs-parent="#faqCrypto">
+                                <div class="accordion-body">
+                                    <p><strong>Keccak256</strong> is used by Ethereum for address generation and various hashing operations.</p>
+                                    <p><strong>Ethereum Address:</strong></p>
+                                    <ol>
+                                        <li>Public Key (uncompressed, without <code>04</code> prefix) → 64 bytes</li>
+                                        <li>Keccak256 hash → 32 bytes</li>
+                                        <li>Take last 20 bytes → Address</li>
+                                        <li>Add <code>0x</code> prefix + EIP-55 checksum (mixed case)</li>
+                                    </ol>
+                                    <p class="mb-0"><strong>Note:</strong> Ethereum uses Keccak256, not the standardized SHA3-256 (they differ slightly)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Encoding Formats -->
+                <section class="faq-section mb-4">
+                    <h2 class="faq-section-title mb-3">
+                        <img src="./assets/svgs/solid/code.svg" class="fa-icon me-2" width="18" height="18" alt="">                        Encoding Formats
+                    </h2>
+
+                    <div class="accordion" id="faqEncoding">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#enc1">
+                                    Base58Check
+                                </button>
+                            </h2>
+                            <div id="enc1" class="accordion-collapse collapse" data-bs-parent="#faqEncoding">
+                                <div class="accordion-body">
+                                    <p><strong>Base58Check</strong> is used for Bitcoin addresses and WIF private keys.</p>
+                                    <p><strong>Alphabet (58 characters):</strong></p>
+                                    <p><code>123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz</code></p>
+                                    <p><strong>Excluded:</strong> <code>0</code>, <code>O</code>, <code>I</code>, <code>l</code> (to avoid visual confusion)</p>
+                                    <p><strong>Format:</strong> <code>Version (1 byte) + Payload + Checksum (4 bytes)</code></p>
+                                    <p class="mb-0"><strong>Checksum:</strong> <code>SHA256(SHA256(version + payload))[0:4]</code></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#enc2">
+                                    Bech32 / Bech32m
+                                </button>
+                            </h2>
+                            <div id="enc2" class="accordion-collapse collapse" data-bs-parent="#faqEncoding">
+                                <div class="accordion-body">
+                                    <p><strong>Bech32</strong> is used for SegWit addresses (BIP173).</p>
+                                    <p><strong>Alphabet (32 characters):</strong></p>
+                                    <p><code>qpzry9x8gf2tvdw0s3jn54khce6mua7l</code></p>
+                                    <p><strong>Format:</strong> <code>HRP + "1" + Data + Checksum</code></p>
+                                    <ul>
+                                        <li><strong>HRP (Human Readable Part):</strong> <code>bc</code> (mainnet), <code>tb</code> (testnet)</li>
+                                        <li><strong>Version 0:</strong> SegWit v0 (bc1q...) - uses Bech32</li>
+                                        <li><strong>Version 1:</strong> Taproot (bc1p...) - uses Bech32m (BIP350)</li>
+                                    </ul>
+                                    <p class="mb-0"><strong>Advantages:</strong> Case-insensitive, better error detection, QR code efficient</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#enc3">
+                                    Hexadecimal (HEX)
+                                </button>
+                            </h2>
+                            <div id="enc3" class="accordion-collapse collapse" data-bs-parent="#faqEncoding">
+                                <div class="accordion-body">
+                                    <p><strong>Hexadecimal</strong> is base-16 encoding using digits 0-9 and letters A-F.</p>
+                                    <p><strong>Properties:</strong></p>
+                                    <ul>
+                                        <li>1 hex character = 4 bits (nibble)</li>
+                                        <li>2 hex characters = 1 byte</li>
+                                        <li>Private key: 64 hex characters = 32 bytes = 256 bits</li>
+                                    </ul>
+                                    <p class="mb-0"><strong>Common prefixes:</strong> <code>0x</code> (Ethereum convention), no prefix (Bitcoin raw)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Bitcoin Address Types -->
+                <section class="faq-section mb-4">
+                    <h2 class="faq-section-title mb-3">
+                        <img src="./assets/svgs/brands/bitcoin.svg" class="fa-icon me-2" width="18" height="18" alt="">                        Bitcoin Address Types
+                    </h2>
+
+                    <div class="accordion" id="faqBtcAddr">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#btc1">
+                                    P2PKH - Legacy (1...)
+                                </button>
+                            </h2>
+                            <div id="btc1" class="accordion-collapse collapse" data-bs-parent="#faqBtcAddr">
+                                <div class="accordion-body">
+                                    <p><strong>P2PKH (Pay-to-Public-Key-Hash)</strong> is the original Bitcoin address format.</p>
+                                    <p><strong>Generation:</strong></p>
+                                    <ol>
+                                        <li>Public Key → SHA256 → RIPEMD160 → 20 bytes</li>
+                                        <li>Add version byte <code>0x00</code></li>
+                                        <li>Base58Check encode</li>
+                                    </ol>
+                                    <p><strong>ScriptPubKey:</strong> <code>OP_DUP OP_HASH160 &lt;pubKeyHash&gt; OP_EQUALVERIFY OP_CHECKSIG</code></p>
+                                    <p class="mb-0"><strong>Size:</strong> 25-34 characters, starts with <code>1</code></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#btc2">
+                                    P2SH - Script Hash (3...)
+                                </button>
+                            </h2>
+                            <div id="btc2" class="accordion-collapse collapse" data-bs-parent="#faqBtcAddr">
+                                <div class="accordion-body">
+                                    <p><strong>P2SH (Pay-to-Script-Hash)</strong> allows complex scripts (multisig, nested SegWit).</p>
+                                    <p><strong>P2SH-P2WPKH (Nested SegWit):</strong></p>
+                                    <ol>
+                                        <li>Create redeem script: <code>0x0014</code> + Hash160(compressed pubkey)</li>
+                                        <li>Hash160 of redeem script → 20 bytes</li>
+                                        <li>Add version byte <code>0x05</code></li>
+                                        <li>Base58Check encode</li>
+                                    </ol>
+                                    <p class="mb-0"><strong>Advantage:</strong> Compatible with older wallets while using SegWit benefits</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#btc3">
+                                    P2WPKH - Native SegWit (bc1q...)
+                                </button>
+                            </h2>
+                            <div id="btc3" class="accordion-collapse collapse" data-bs-parent="#faqBtcAddr">
+                                <div class="accordion-body">
+                                    <p><strong>P2WPKH (Pay-to-Witness-Public-Key-Hash)</strong> is native SegWit v0.</p>
+                                    <p><strong>Generation:</strong></p>
+                                    <ol>
+                                        <li>Compressed Public Key → Hash160 → 20 bytes</li>
+                                        <li>Witness version: <code>0</code></li>
+                                        <li>Bech32 encode with HRP <code>bc</code></li>
+                                    </ol>
+                                    <p><strong>Advantages:</strong></p>
+                                    <ul class="mb-0">
+                                        <li>~38% smaller transactions → lower fees</li>
+                                        <li>Signature data moved to witness (not counted in block size)</li>
+                                        <li>Better error detection with Bech32</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#btc4">
+                                    P2TR - Taproot (bc1p...)
+                                </button>
+                            </h2>
+                            <div id="btc4" class="accordion-collapse collapse" data-bs-parent="#faqBtcAddr">
+                                <div class="accordion-body">
+                                    <p><strong>P2TR (Pay-to-Taproot)</strong> is SegWit v1, activated November 2021.</p>
+                                    <p><strong>Generation:</strong></p>
+                                    <ol>
+                                        <li>Private Key → x-only public key (32 bytes, no prefix)</li>
+                                        <li>Tweak with internal key (for key path spending)</li>
+                                        <li>Witness version: <code>1</code></li>
+                                        <li>Bech32m encode</li>
+                                    </ol>
+                                    <p><strong>Features:</strong></p>
+                                    <ul class="mb-0">
+                                        <li>Schnorr signatures (more efficient than ECDSA)</li>
+                                        <li>MAST (Merkelized Abstract Syntax Trees)</li>
+                                        <li>Key aggregation for multisig</li>
+                                        <li>Better privacy (all spends look the same)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CGT Tools -->
+                <section class="faq-section mb-4">
+                    <h2 class="faq-section-title mb-3">
+                        <img src="./assets/svgs/solid/toolbox.svg" class="fa-icon me-2" width="18" height="18" alt="">                        CGT Tools
+                    </h2>
+
+                    <div class="accordion" id="faqTools">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tool1">
+                                    Private Keys Directory
+                                </button>
+                            </h2>
+                            <div id="tool1" class="accordion-collapse collapse" data-bs-parent="#faqTools">
+                                <div class="accordion-body">
+                                    <p>Browse the entire 256-bit private key space organized into pages.</p>
+                                    <p><strong>Key Space:</strong></p>
+                                    <ul>
+                                        <li><strong>Total keys:</strong> 2²⁵⁶ (secp256k1 order)</li>
+                                        <li><strong>Keys per page:</strong> 60</li>
+                                        <li><strong>Total pages:</strong> ~1.93 × 10⁷⁵</li>
+                                    </ul>
+                                    <p><strong>Page calculation:</strong></p>
+                                    <ul class="mb-0">
+                                        <li>Page N contains keys: <code>(N-1)*60 + 1</code> to <code>N*60</code></li>
+                                        <li>Key K is on page: <code>ceil(K / 60)</code></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tool2">
+                                    Bitcoin Puzzle
+                                </button>
+                            </h2>
+                            <div id="tool2" class="accordion-collapse collapse" data-bs-parent="#faqTools">
+                                <div class="accordion-body">
+                                    <p>A challenge created in 2015 with ~1000 BTC distributed across 160 addresses.</p>
+                                    <p><strong>Structure:</strong></p>
+                                    <ul>
+                                        <li>Puzzle #N has private key in range: <code>2^(N-1)</code> to <code>2^N - 1</code></li>
+                                        <li>Key space size: <code>2^(N-1)</code> keys</li>
+                                    </ul>
+                                    <p><strong>Difficulty examples:</strong></p>
+                                    <table class="table table-sm">
+                                        <tr><td>Puzzle #66</td><td>2⁶⁵ keys</td><td>~36.9 quintillion</td></tr>
+                                        <tr><td>Puzzle #130</td><td>2¹²⁹ keys</td><td>~6.8 × 10³⁸</td></tr>
+                                    </table>
+                                    <p class="mb-0"><strong>Tools:</strong> BitCrack (GPU), Keyhunt (BSGS/Kangaroo), VanitySearch</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tool3">
+                                    Brainwallet
+                                </button>
+                            </h2>
+                            <div id="tool3" class="accordion-collapse collapse" data-bs-parent="#faqTools">
+                                <div class="accordion-body">
+                                    <p>Addresses derived from passphrases using SHA256 hash as private key.</p>
+                                    <p><strong>Process:</strong></p>
+                                    <ol>
+                                        <li>Passphrase (UTF-8 string)</li>
+                                        <li>SHA256(passphrase) → 32 bytes → Private Key</li>
+                                        <li>Derive public key and address normally</li>
+                                    </ol>
+                                    <p><strong>Why it's weak:</strong></p>
+                                    <ul class="mb-0">
+                                        <li>Human-chosen phrases have low entropy</li>
+                                        <li>Dictionary attacks can check millions of phrases per second</li>
+                                        <li>Common phrases are pre-computed and monitored</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tool4">
+                                    Mnemonic Converter
+                                </button>
+                            </h2>
+                            <div id="tool4" class="accordion-collapse collapse" data-bs-parent="#faqTools">
+                                <div class="accordion-body">
+                                    <p>Convert BIP39 seed phrases to private keys and addresses.</p>
+                                    <p><strong>Conversion process:</strong></p>
+                                    <ol>
+                                        <li>Mnemonic → Validate words & checksum</li>
+                                        <li>PBKDF2-HMAC-SHA512 (mnemonic, "mnemonic" + passphrase, 2048 iterations) → 512-bit seed</li>
+                                        <li>HMAC-SHA512(seed, "Bitcoin seed") → Master key + Chain code</li>
+                                        <li>Derive child keys using BIP32 path</li>
+                                    </ol>
+                                    <p class="mb-0"><strong>Supported paths:</strong> BIP44, BIP49, BIP84, BIP86, custom</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tool5">
+                                    Vanity Generator
+                                </button>
+                            </h2>
+                            <div id="tool5" class="accordion-collapse collapse" data-bs-parent="#faqTools">
+                                <div class="accordion-body">
+                                    <p>Generate EVM addresses with custom prefix/suffix patterns.</p>
+                                    <p><strong>Algorithm:</strong></p>
+                                    <ol>
+                                        <li>Generate random private key</li>
+                                        <li>Compute public key → Keccak256 → Address</li>
+                                        <li>Check if address matches pattern</li>
+                                        <li>Repeat until match found</li>
+                                    </ol>
+                                    <p><strong>Difficulty (expected attempts):</strong></p>
+                                    <ul class="mb-0">
+                                        <li>1 hex char: 16 attempts</li>
+                                        <li>4 hex chars: 65,536 attempts</li>
+                                        <li>8 hex chars: ~4.3 billion attempts</li>
+                                    </ul>
+                                    <p class="mb-0 mt-2"><strong>Implementation:</strong> Rust WASM for high performance (~4000-6000 addr/s per worker)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Advanced Topics -->
+                <section class="faq-section mb-4">
+                    <h2 class="faq-section-title mb-3">
+                        <img src="./assets/svgs/solid/graduation-cap.svg" class="fa-icon me-2" width="18" height="18" alt="">                        Advanced Topics
+                    </h2>
+
+                    <div class="accordion" id="faqAdvanced">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#adv1">
+                                    What is the mini private key format?
+                                </button>
+                            </h2>
+                            <div id="adv1" class="accordion-collapse collapse" data-bs-parent="#faqAdvanced">
+                                <div class="accordion-body">
+                                    <p><strong>Mini private key</strong> is a 30-character format (starting with <code>S</code>) used for physical Bitcoin coins and paper wallets.</p>
+                                    <p><strong>Format:</strong></p>
+                                    <ul>
+                                        <li>30 characters from Base58 alphabet</li>
+                                        <li>First character is always <code>S</code></li>
+                                        <li>Must pass checksum validation: <code>SHA256(key + "?")</code> first byte = 0x00</li>
+                                    </ul>
+                                    <p><strong>Conversion to standard key:</strong></p>
+                                    <ul class="mb-0">
+                                        <li><code>SHA256(mini_key)</code> → 256-bit private key</li>
+                                        <li>Example: <code>S6c56bnXQiBjk9mqSYE7ykVQ7NzrRy</code> → standard hex key</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#adv2">
+                                    What is a wallet.dat file?
+                                </button>
+                            </h2>
+                            <div id="adv2" class="accordion-collapse collapse" data-bs-parent="#faqAdvanced">
+                                <div class="accordion-body">
+                                    <p><strong>wallet.dat</strong> is the Bitcoin Core wallet file that stores your private keys and transaction data.</p>
+                                    <p><strong>Contents:</strong></p>
+                                    <ul>
+                                        <li>Private keys (encrypted if passphrase set)</li>
+                                        <li>Key pool (pre-generated keys)</li>
+                                        <li>Transaction history and labels</li>
+                                        <li>Address book entries</li>
+                                    </ul>
+                                    <p><strong>Format:</strong> Berkeley DB database (older versions) or SQLite (Bitcoin Core 0.21+)</p>
+                                    <p class="mb-0"><strong>Encryption:</strong> AES-256-CBC with key derived from passphrase using scrypt</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#adv3">
+                                    Where is the wallet.dat file located?
+                                </button>
+                            </h2>
+                            <div id="adv3" class="accordion-collapse collapse" data-bs-parent="#faqAdvanced">
+                                <div class="accordion-body">
+                                    <p><strong>Default Bitcoin Core data directory:</strong></p>
+                                    <table class="table table-sm">
+                                        <tbody>
+                                            <tr><td><strong>Windows</strong></td><td><code>%APPDATA%\Bitcoin\wallets\</code></td></tr>
+                                            <tr><td><strong>macOS</strong></td><td><code>~/Library/Application Support/Bitcoin/wallets/</code></td></tr>
+                                            <tr><td><strong>Linux</strong></td><td><code>~/.bitcoin/wallets/</code></td></tr>
+                                        </tbody>
+                                    </table>
+                                    <p><strong>Notes:</strong></p>
+                                    <ul class="mb-0">
+                                        <li>Bitcoin Core 0.16+: wallets stored in <code>/wallets/</code> subdirectory</li>
+                                        <li>Custom location with <code>-datadir</code> flag</li>
+                                        <li>Multiple wallets supported with <code>-wallet</code> flag</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#adv4">
+                                    How to find a funded private key?
+                                </button>
+                            </h2>
+                            <div id="adv4" class="accordion-collapse collapse" data-bs-parent="#faqAdvanced">
+                                <div class="accordion-body">
+                                    <p>Random searching is <strong>practically impossible</strong> due to the size of the key space.</p>
+                                    <p><strong>Targeted approaches (for research/puzzles):</strong></p>
+                                    <ul>
+                                        <li><strong>Known range:</strong> Bitcoin Puzzle limits keys to specific bit ranges</li>
+                                        <li><strong>Weak keys:</strong> Brainwallets, low-entropy generators</li>
+                                        <li><strong>Leaked keys:</strong> Historical database breaches</li>
+                                        <li><strong>Partial information:</strong> Partial key recovery with known bits</li>
+                                    </ul>
+                                    <p><strong>Methods:</strong></p>
+                                    <ul class="mb-0">
+                                        <li>Brute force (only for very small ranges)</li>
+                                        <li>BSGS (Baby-step Giant-step) - O(√n) complexity</li>
+                                        <li>Pollard's Kangaroo - probabilistic, good for ranges</li>
+                                        <li>Dictionary attacks for brainwallets</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#adv5">
+                                    What tools can be used to find private keys?
+                                </button>
+                            </h2>
+                            <div id="adv5" class="accordion-collapse collapse" data-bs-parent="#faqAdvanced">
+                                <div class="accordion-body">
+                                    <p><strong>GPU-based tools:</strong></p>
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr><th>Tool</th><th>Method</th><th>Speed</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr><td>BitCrack</td><td>Brute force</td><td>~1-3B keys/s (RTX 3090)</td></tr>
+                                            <tr><td>VanitySearch</td><td>Brute force + vanity</td><td>~2B keys/s</td></tr>
+                                            <tr><td>Keyhunt</td><td>BSGS, Kangaroo</td><td>Variable</td></tr>
+                                            <tr><td>Kangaroo</td><td>Pollard's Kangaroo</td><td>Range-dependent</td></tr>
+                                        </tbody>
+                                    </table>
+                                    <p><strong>CPU tools:</strong></p>
+                                    <ul>
+                                        <li><strong>btcrecover:</strong> Seed phrase/password recovery</li>
+                                        <li><strong>hashcat:</strong> wallet.dat password cracking</li>
+                                    </ul>
+                                    <p class="mb-0"><strong>Note:</strong> These tools are useful for recovering your own lost keys or solving puzzles. Finding random funded keys is mathematically infeasible.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Related Resources -->
+                <section class="faq-section mb-4">
+                    <h2 class="faq-section-title mb-3">
+                        <img src="./assets/svgs/solid/link.svg" class="fa-icon me-2" width="18" height="18" alt="">                        Related Resources
+                    </h2>
+
+                    <div class="related-resources-grid">
+                        <a href="https://privatekeys.lol/" class="related-resource-card" target="_blank" rel="noopener">
+                            <div class="related-resource-icon">
+                                <img src="./assets/svgs/solid/dice.svg" class="fa-icon " width="24" height="24" alt="">                            </div>
+                            <div class="related-resource-content">
+                                <h3 class="related-resource-title">privatekeys.lol</h3>
+                                <p class="related-resource-desc">Educational tools demonstrating cryptocurrency security principles through interactive key space exploration, collision simulators, and entropy generators.</p>
+                            </div>
+                            <div class="related-resource-arrow">
+                                <img src="./assets/svgs/solid/arrow-up-right-from-square.svg" class="fa-icon " width="14" height="14" alt="">                            </div>
+                        </a>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .related-resources-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .related-resource-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: var(--cgt-card-bg);
+        border: 1px solid var(--cgt-border);
+        border-radius: 0.5rem;
+        text-decoration: none;
+        color: var(--cgt-text);
+        transition: all 0.2s ease;
+    }
+    .related-resource-card:hover {
+        border-color: var(--cgt-primary);
+        background: var(--cgt-bg-tertiary);
+        color: var(--cgt-text);
+        transform: translateX(4px);
+    }
+    .related-resource-icon {
+        flex-shrink: 0;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--cgt-bg-tertiary);
+        border-radius: 0.5rem;
+        color: var(--cgt-primary);
+    }
+    .related-resource-content {
+        flex: 1;
+        min-width: 0;
+    }
+    .related-resource-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+        color: var(--cgt-primary);
+    }
+    .related-resource-desc {
+        font-size: 0.875rem;
+        color: var(--cgt-text-muted);
+        margin: 0;
+        line-height: 1.4;
+    }
+    .related-resource-arrow {
+        flex-shrink: 0;
+        opacity: 0.5;
+        transition: opacity 0.2s ease;
+    }
+    .related-resource-card:hover .related-resource-arrow {
+        opacity: 1;
+    }
+    .faq-section-title {
+        font-size: 1.25rem;
+        color: var(--cgt-text);
+        font-weight: 600;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--cgt-primary);
+        display: inline-block;
+    }
+    .accordion-item {
+        background: var(--cgt-card-bg);
+        border: 1px solid var(--cgt-border);
+        margin-bottom: 0.5rem;
+        border-radius: 0.5rem !important;
+        overflow: hidden;
+    }
+    .accordion-button {
+        background: var(--cgt-card-bg);
+        color: var(--cgt-text);
+        font-weight: 500;
+        padding: 1rem 1.25rem;
+    }
+    .accordion-button:not(.collapsed) {
+        background: var(--cgt-bg-tertiary);
+        color: var(--cgt-primary);
+        box-shadow: none;
+    }
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: var(--cgt-border);
+    }
+    .accordion-button::after {
+        filter: var(--cgt-icon-filter, none);
+    }
+    .accordion-body {
+        background: var(--cgt-card-bg);
+        color: var(--cgt-text);
+        padding: 1rem 1.25rem;
+    }
+    .accordion-body code {
+        background: var(--cgt-bg-tertiary);
+        padding: 0.15rem 0.4rem;
+        border-radius: 0.25rem;
+        font-size: 0.85em;
+        word-break: break-all;
+    }
+    .accordion-body .table {
+        color: var(--cgt-text);
+        margin-bottom: 0;
+    }
+    .accordion-body .table th,
+    .accordion-body .table td {
+        border-color: var(--cgt-border);
+    }
+    .accordion-body ol {
+        padding-left: 1.25rem;
+    }
+    .accordion-body ol li {
+        margin-bottom: 0.25rem;
+    }
+    </style>
+        </main>
+
+        <!-- Ad Unit: Footer Banner (CTADS2) -->
+    <div class="container mb-3">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-4936080102497511"
+             data-ad-slot="7634355468"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+    </div>
+    
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer py-3 mt-auto">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                    <small class="d-flex align-items-center justify-content-center justify-content-md-start gap-3 flex-wrap">
+                        <a href="./faq.html" class="text-muted text-decoration-none footer-link">
+                            <img src="./assets/svgs/solid/circle-question.svg" class="fa-icon me-1" width="12" height="12" alt="">FAQ
+                        </a>
+                        <a href="./disclaimer.html" class="text-muted text-decoration-none footer-link">
+                            <img src="./assets/svgs/solid/scale-balanced.svg" class="fa-icon me-1" width="12" height="12" alt="">Disclaimer
+                        </a>
+                        <a href="./donate.html" class="text-muted text-decoration-none footer-link">
+                            <img src="./assets/svgs/solid/heart.svg" class="fa-icon me-1" width="12" height="12" alt="">Donate
+                        </a>
+                        <a href="https://t.me/cryptographytubeofficial" class="text-muted text-decoration-none footer-link" target="_blank" rel="noopener">
+                            <img src="./assets/svgs/brands/telegram.svg" class="fa-icon me-1" width="12" height="12" alt="">Telegram
+                        </a>
+                        <a href="https://t.me/cryptographytube" class="text-muted text-decoration-none footer-link" target="_blank" rel="noopener">
+                            <img src="./assets/svgs/brands/telegram.svg" class="fa-icon me-1" width="12" height="12" alt="">Community
+                        </a>
+                        <a href="https://github.com/Cryptographytube" class="text-muted text-decoration-none footer-link" target="_blank" rel="noopener">
+                            <img src="./assets/svgs/brands/github.svg" class="fa-icon me-1" width="12" height="12" alt="">GitHub
+                        </a>
+                        <a href="https://privatekeys.lol/" class="text-muted text-decoration-none footer-link" target="_blank" rel="noopener">
+                            <img src="./assets/svgs/solid/dice.svg" class="fa-icon me-1" width="12" height="12" alt="">privatekeys.lol
+                        </a>
+                        <a href="https://heliowallet.com/" class="text-muted text-decoration-none footer-link" target="_blank" rel="noopener">
+                            <img src="./assets/svgs/solid/wallet.svg" class="fa-icon me-1" width="12" height="12" alt="">HelioWallet
+                        </a>
+                    </small>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <small class="text-muted">
+                        &copy; 2026 CryptographyTube                        <span class="text-secondary ms-2">ve86e4e57</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========== WALLET SEARCH MODAL ========== -->
+    <div class="modal fade" id="walletSearchModal" tabindex="-1" aria-labelledby="walletSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title ws-modal-title" id="walletSearchModalLabel">
+                        <span class="ws-title-icon"><img src="./assets/svgs/solid/wallet.svg" class="fa-icon " width="16" height="16" alt=""></span>
+                        <span class="ws-title-text">Wallet Search</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-3">
+                    <!-- Input Section -->
+                    <div class="wallet-search-input-section">
+                        <textarea id="walletSearchInput"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Enter private key, mnemonic, or any text (brainwallet)..."
+                                  autocomplete="off"
+                                  spellcheck="false"></textarea>
+                        <div class="form-text d-flex justify-content-between align-items-center mt-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span id="walletSearchInputType" class="text-muted small">Auto-detect: HEX, WIF, Keypair, XRP Secret, Mnemonic, Brainwallet</span>
+                                <a href="#" id="wsViewLink" class="small text-decoration-none" style="display: none;">
+                                    <img src="./assets/svgs/solid/up-right-from-square.svg" class="fa-icon " width="10" height="10" alt=""> <span id="wsViewLinkText">View</span>
+                                </a>
+                            </div>
+                            <span id="walletSearchWordCount" class="small"></span>
+                        </div>
+                        <div id="wsHexSuggestion"></div>
+
+                        <!-- Input Type Selection (shown after detection) -->
+                        <div id="wsInputTypeOptions" class="ws-input-type-options mt-2" style="display: none;">
+                            <span class="ws-type-label">Interpret as</span>
+                            <div class="ws-type-chips">
+                                <input type="radio" class="ws-type-radio" name="wsInputType" id="wsTypeHex" value="hex">
+                                <label class="ws-type-chip" for="wsTypeHex">
+                                    <img src="./assets/svgs/solid/key.svg" class="fa-icon " width="11" height="11" alt="">                                    <span>Private Key (HEX)</span>
+                                </label>
+
+                                <input type="radio" class="ws-type-radio" name="wsInputType" id="wsTypeWif" value="wif">
+                                <label class="ws-type-chip" for="wsTypeWif">
+                                    <img src="./assets/svgs/solid/key.svg" class="fa-icon " width="11" height="11" alt="">                                    <span>WIF Format</span>
+                                </label>
+
+                                <input type="radio" class="ws-type-radio" name="wsInputType" id="wsTypeKeypair" value="keypair">
+                                <label class="ws-type-chip" for="wsTypeKeypair">
+                                    <img src="./assets/svgs/solid/link.svg" class="fa-icon " width="11" height="11" alt="">                                    <span>Keypair</span>
+                                </label>
+
+                                <input type="radio" class="ws-type-radio" name="wsInputType" id="wsTypeXrpSecret" value="xrp-secret">
+                                <label class="ws-type-chip" for="wsTypeXrpSecret">
+                                    <img src="./assets/svgs/solid/lock.svg" class="fa-icon " width="11" height="11" alt="">                                    <span>XRP Secret</span>
+                                </label>
+
+                                <input type="radio" class="ws-type-radio" name="wsInputType" id="wsTypeMnemonic" value="mnemonic">
+                                <label class="ws-type-chip" for="wsTypeMnemonic">
+                                    <img src="./assets/svgs/solid/grip.svg" class="fa-icon " width="11" height="11" alt="">                                    <span>Mnemonic</span>
+                                </label>
+
+                                <input type="radio" class="ws-type-radio" name="wsInputType" id="wsTypeBrainwallet" value="brainwallet">
+                                <label class="ws-type-chip" for="wsTypeBrainwallet">
+                                    <img src="./assets/svgs/solid/brain.svg" class="fa-icon " width="11" height="11" alt="">                                    <span>Brainwallet</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Supported Chains -->
+                        <div class="ws-supported-chains mt-3">
+                            <span class="ws-chains-label">Supported:</span>
+                            <div class="ws-chains-icons">
+                                                                    <span class="ws-chain-icon" title="Bitcoin">
+                                        <img src="./assets/svgs/chain/bitcoin.svg" width="18" height="18" class="crypto-icon " alt="bitcoin">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Ethereum">
+                                        <img src="./assets/svgs/chain/ethereum.svg" width="18" height="18" class="crypto-icon " alt="ethereum">                                    </span>
+                                                                    <span class="ws-chain-icon" title="BNB">
+                                        <img src="./assets/svgs/chain/bnb.svg" width="18" height="18" class="crypto-icon " alt="bnb">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Polygon">
+                                        <img src="./assets/svgs/chain/polygon.svg" width="18" height="18" class="crypto-icon " alt="polygon">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Arbitrum">
+                                        <img src="./assets/svgs/chain/arbitrum.svg" width="18" height="18" class="crypto-icon " alt="arbitrum">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Solana">
+                                        <img src="./assets/svgs/chain/solana.svg" width="18" height="18" class="crypto-icon " alt="solana">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Tron">
+                                        <img src="./assets/svgs/chain/tron.svg" width="18" height="18" class="crypto-icon " alt="tron">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Litecoin">
+                                        <img src="./assets/svgs/chain/litecoin.svg" width="18" height="18" class="crypto-icon " alt="litecoin">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Dogecoin">
+                                        <img src="./assets/svgs/chain/dogecoin.svg" width="18" height="18" class="crypto-icon " alt="dogecoin">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Zcash">
+                                        <img src="./assets/svgs/chain/zcash.svg" width="18" height="18" class="crypto-icon " alt="zcash">                                    </span>
+                                                                <span class="ws-chains-more">+more</span>
+                            </div>
+                        </div>
+
+                        <!-- Search Button -->
+                        <button type="button" class="btn btn-primary-emphasis ws-search-btn mt-3" id="walletSearchBtn2" onclick="WalletSearch.search()">
+                            <img src="./assets/svgs/solid/magnifying-glass.svg" class="fa-icon me-2" width="14" height="14" alt="">                            Search All Chains
+                        </button>
+                    </div>
+
+                    <!-- Optional: Passphrase for Mnemonic -->
+                    <div class="wallet-search-options mt-3" id="walletSearchMnemonicOptions" style="display: none;">
+                        <div class="row g-2">
+                            <div class="col-md-8">
+                                <input type="text" id="walletSearchPassphrase" class="form-control form-control-sm" placeholder="BIP39 passphrase (optional)" autocomplete="off">
+                            </div>
+                            <div class="col-md-4">
+                                <select id="walletSearchAddressCount" class="form-select form-select-sm">
+                                    <option value="1" selected>1 address</option>
+                                    <option value="3">3 addresses</option>
+                                    <option value="5">5 addresses</option>
+                                    <option value="10">10 addresses</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="walletSearchResults" class="wallet-search-results d-none mt-4">
+                        <!-- Results Header -->
+                        <div class="ws-results-header">
+                            <div class="ws-results-title">
+                                <img src="./assets/svgs/solid/wallet.svg" class="fa-icon " width="16" height="16" alt="">                                <span>Derived Addresses</span>
+                                <span class="badge bg-secondary" id="wsInputInfo">-</span>
+                                <span class="ws-activity-status" id="wsActivityStatus"></span>
+                            </div>
+                            <div class="ws-results-actions">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="WalletSearch.copyAll()">
+                                    <img src="./assets/svgs/regular/copy.svg" class="fa-icon " width="12" height="12" alt="">                                    <span>Copy All</span>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="WalletSearch.exportCsv()">
+                                    <img src="./assets/svgs/solid/download.svg" class="fa-icon " width="12" height="12" alt="">                                    <span>CSV</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Activity Summary -->
+                        <div class="ws-activity-summary" id="wsActivitySummary">
+                            <span id="wsActiveChains">0 chains</span>
+                            <span class="ws-sep">•</span>
+                            <span id="wsActiveAddresses">0 addresses</span>
+                        </div>
+
+                        <!-- Chains List (vertical) -->
+                        <div id="walletSearchChainsGrid" class="ws-chains-list">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== LOADING OVERLAY ========== -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="mt-2">Generating...</div>
+        </div>
+    </div>
+
+    <!-- ========== SCRIPTS ========== -->
+    
+    <!-- Page Config (must be first) -->
+    <script>
+        window.CGT_CONFIG = {
+            baseUrl: '',
+            apiBaseUrl: '',
+            apiSocketUrl: '',
+            isProduction: true,
+            jsExt: '.obf.js',
+            version: 'e86e4e57',
+            module: "faq",
+            action: 'index',
+            chain: null,
+            page: '1',
+            type: null,
+            chainInfo: null,
+            chains: {"bitcoin":{"name":"Bitcoin","symbol":"BTC","logo":"bitcoin","iconType":"brands","iconName":"bitcoin","color":"#f7931a","type":"bitcoin","explorer":"https:\/\/blockchain.com\/btc\/address\/","enabled":true},"ethereum":{"name":"Ethereum","symbol":"ETH","logo":"ethereum","iconType":"brands","iconName":"ethereum","color":"#627eea","type":"evm","explorer":"https:\/\/etherscan.io\/address\/","enabled":true},"bnb":{"name":"BNB Chain","symbol":"BNB","logo":"bnb","iconType":"solid","iconName":"coins","color":"#f3ba2f","type":"evm","explorer":"https:\/\/bscscan.com\/address\/","enabled":true},"arbitrum":{"name":"Arbitrum","symbol":"ETH","logo":"arbitrum","iconType":"solid","iconName":"layer-group","color":"#28a0f0","type":"evm","explorer":"https:\/\/arbiscan.io\/address\/","enabled":true},"optimism":{"name":"Optimism","symbol":"ETH","logo":"optimism-ethereum","iconType":"regular","iconName":"circle","color":"#ff0420","type":"evm","explorer":"https:\/\/optimistic.etherscan.io\/address\/","enabled":true},"base":{"name":"Base","symbol":"ETH","logo":"base","iconType":"solid","iconName":"circle","color":"#0052ff","type":"evm","explorer":"https:\/\/basescan.org\/address\/","enabled":true},"polygon":{"name":"Polygon","symbol":"POL","logo":"polygon","iconType":"solid","iconName":"gem","color":"#8247e5","type":"evm","explorer":"https:\/\/polygonscan.com\/address\/","enabled":true},"avalanche":{"name":"Avalanche","symbol":"AVAX","logo":"avalanche","iconType":"solid","iconName":"mountain","color":"#e84142","type":"evm","explorer":"https:\/\/snowtrace.io\/address\/","enabled":true},"zksync":{"name":"zkSync Era","symbol":"ETH","logo":"zksync","iconType":"solid","iconName":"bolt","color":"#8c8dfc","type":"evm","explorer":"https:\/\/explorer.zksync.io\/address\/","enabled":true},"solana":{"name":"Solana","symbol":"SOL","logo":"solana","iconType":"solid","iconName":"sun","color":"#9945FF","type":"solana","explorer":"https:\/\/solscan.io\/account\/","enabled":true},"tron":{"name":"Tron","symbol":"TRX","logo":"tron","iconType":"solid","iconName":"bolt","color":"#ff0013","type":"tron","explorer":"https:\/\/tronscan.org\/#\/address\/","enabled":true},"ton":{"name":"TON","symbol":"TON","logo":"toncoin","iconType":"solid","iconName":"diamond","color":"#0098ea","type":"ton","explorer":"https:\/\/tonviewer.com\/","enabled":true},"sui":{"name":"Sui","symbol":"SUI","logo":"sui","iconType":"solid","iconName":"water","color":"#6fbcf0","type":"sui","explorer":"https:\/\/suiscan.xyz\/mainnet\/account\/","enabled":true},"xrp":{"name":"XRP","symbol":"XRP","logo":"xrp","iconType":"solid","iconName":"droplet","color":"#23292f","type":"xrp","explorer":"https:\/\/xrpscan.com\/account\/","enabled":true},"litecoin":{"name":"Litecoin","symbol":"LTC","logo":"litecoin","iconType":"solid","iconName":"coins","color":"#345d9d","type":"litecoin","explorer":"https:\/\/blockchair.com\/litecoin\/address\/","enabled":true},"bitcoin-cash":{"name":"Bitcoin Cash","symbol":"BCH","logo":"bitcoin-cash","iconType":"brands","iconName":"bitcoin","color":"#8dc351","type":"bitcoincash","explorer":"https:\/\/blockchair.com\/bitcoin-cash\/address\/","enabled":true},"dogecoin":{"name":"Dogecoin","symbol":"DOGE","logo":"dogecoin","iconType":"solid","iconName":"dog","color":"#c2a633","type":"dogecoin","explorer":"https:\/\/blockchair.com\/dogecoin\/address\/","enabled":true},"zcash":{"name":"Zcash","symbol":"ZEC","logo":"zcash","iconType":"solid","iconName":"shield-halved","color":"#ECB244","type":"zcash","explorer":"https:\/\/blockchair.com\/zcash\/address\/","enabled":true}},
+            needsCrypto: false,
+            useLocalLibs: false,
+                    };
+        // Library URLs for lazy loading (CDN or local based on USE_LOCAL_LIBS)
+        window.CGT_LIBS = {
+            ethers: './assets/libs/ethers.umd.min.js',
+            noble_hashes: 'https://esm.sh/@noble/hashes@1.7.1',
+            noble_curves: 'https://esm.sh/@noble/curves@1.8.1'
+        };
+        // CDN fallback (used if local fails)
+        window.CGT_LIBS_CDN = {
+            ethers: 'https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js',
+            noble_hashes: 'https://esm.sh/@noble/hashes@1.7.1',
+            noble_curves: 'https://esm.sh/@noble/curves@1.8.1'
+        };
+    </script>
+
+    <!-- UI (lightweight Modal & Collapse - replaces Bootstrap JS) -->
+    <script src="./assets/js/ui.obf.js" defer></script>
+
+        <!-- Crypto Loader (lazy load when needed) -->
+    <script src="./assets/js/crypto-loader.obf.js" defer></script>
+    
+    <!-- App Scripts (defer to maintain order) -->
+    <script src="./assets/js/theme.obf.js" defer></script>
+    <script src="./assets/js/balance-checker.obf.js" defer></script>
+    <script src="./assets/js/app.obf.js" defer></script>
+    </body>
+</html>

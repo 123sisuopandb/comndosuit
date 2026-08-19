@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>CryptographyTube</title>
+<style>html,body{margin:0;background:#0b0e11;color:#c9d1d9;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}#cgt404{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:15px;opacity:.8}</style>
+</head>
+<body>
+<div id="cgt404">Loading…</div>
+<noscript><p style="text-align:center">This page needs JavaScript. <a href="/" style="color:#f7931a">Go to the homepage</a>.</p></noscript>
+<script>
+/* GitHub Pages client-side router.
+ *
+ * GitHub Pages has no _redirects / .htaccess, so the dynamic template routes
+ * (bitcoin-dormant list pages 12+, non-pre-rendered detail pages, non-baked
+ * brainwallet / milk-sad numbered pages, and arbitrary /key/<value>) all 404.
+ * GH Pages serves THIS file for any unmatched path (keeping the URL). We mirror
+ * the serve.py / _redirects logic: map the URL to the correct on-disk template,
+ * fetch it, and write it into this document WITHOUT changing the URL, so each
+ * page's own fix script reads the real location.pathname and renders itself.
+ *
+ * Real pre-rendered pages (every main page, chain page, pages 1..11, the 292
+ * baked detail files, baked brainwallet/milk-sad pages) are served directly by
+ * GH Pages and never reach this router.
+ */
+(function () {
+  var path = location.pathname.replace(/\/+$/, '') || '/';
+  var seg = path.split('/').filter(Boolean);
+  var isNum = function (s) { return /^\d+$/.test(s); };
+
+  function template() {
+    if (!seg.length) return null;
+    var s0 = seg[0];
+
+    // /key/<value>  -> key.html  (renders any private key from the path)
+    if (s0 === 'key' && seg.length >= 2) return '/key.html';
+
+    if (s0 === 'bitcoin-dormant') {
+      // /bitcoin-dormant/address/<ADDR>  -> the one dynamic detail template
+      if (seg[1] === 'address' && seg.length >= 3) return '/bitcoin-dormant/address.html';
+      // /bitcoin-dormant/<N>  (virtual list page 12+, holds addresses.txt rows)
+      if (seg.length === 2 && isNum(seg[1])) return '/bitcoin-dormant/_page.html';
+      return null;
+    }
+
+    if (s0 === 'brainwallet' && seg.length >= 2) {
+      // /brainwallet/<N>  -> bitcoin page N ; /brainwallet/<chain>/...  -> that chain
+      var chain = (seg.length === 2 && isNum(seg[1])) ? 'bitcoin' : seg[1];
+      return '/brainwallet/' + chain + '/2.html';
+    }
+
+    if (s0 === 'milk-sad' && seg.length >= 3) {
+      // /milk-sad/<chain>/<N>  -> that chain's page-1 template (fix re-renders N)
+      return '/milk-sad/' + seg[1] + '/1.html';
+    }
+
+    return null;
+  }
+
+  var tmpl = template();
+  if (!tmpl) { location.replace('/'); return; }
+
+  fetch(tmpl, { credentials: 'same-origin' })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then(function (html) {
+      // Rewrite the document in place; scripts written this way execute in order,
+      // so each page's fix + engine run against the preserved URL.
+      document.open();
+      document.write(html);
+      document.close();
+    })
+    .catch(function () { location.replace('/'); });
+})();
+</script>
+</body>
+</html>

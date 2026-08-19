@@ -1,0 +1,118 @@
+# CGT Website - Apache .htaccess (cPanel Compatible)
+Options -Indexes
+DirectoryIndex index.html
+
+RewriteEngine On
+RewriteBase /
+
+# Force HTTPS (optional - uncomment if SSL is installed)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Serve .html files without extension
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI}.html -f
+RewriteRule ^(.+?)/?$ /$1.html [L]
+
+# Private key detail pages: one template (key.html) renders any key, reading the
+# value from the /key/<value> path. Must precede the generic subdirectory rule
+# below (a 64-char hex would otherwise rewrite to /key/<hex>.html and 404). The
+# !-f guard lets the pre-rendered /key/<example> files serve themselves.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^key/[^/]+/?$ /key.html [L]
+
+# Brainwallet browse pages. The engine builds Random / Jump / address-type URLs
+# that must resolve to the pre-rendered pages. Only 1, 2 and 315 are baked per
+# non-bitcoin chain (bitcoin has all 315); brainwallet-fix.js re-renders any
+# other page from the chain's 2.html template. The !-f guard lets real files
+# serve themselves. These precede the generic numbered-subpage rule so a bare
+# /brainwallet/<N> maps to bitcoin, not a nonexistent /brainwallet/<N>.html.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^brainwallet/([a-z0-9-]+)/([0-9]+)/?$ /brainwallet/$1/2.html [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^brainwallet/([0-9]+)/?$ /brainwallet/bitcoin/$1.html [L]
+
+# Bitcoin-Dormant detail pages: one template (bitcoin-dormant/address.html) renders any
+# tracked address, reading it from the /bitcoin-dormant/address/<ADDR> path. Only 292 of
+# 543 were pre-rendered; the .html rule at the top serves those first, and the !-f guard
+# lets any other address fall through to the template here instead of 404.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^bitcoin-dormant/address/[^/]+/?$ /bitcoin-dormant/address.html [L]
+
+# Bitcoin-Dormant virtual list pages (12, 13, …) hold addresses.txt entries. Pages 1..11
+# are pre-rendered (served by the .html rule at the top); a higher /bitcoin-dormant/<N>
+# has no file, so resolve it to _page.html — whose absolute /assets/ paths keep loading —
+# and bitcoin-dormant-fix.js renders the correct slice. Must precede the generic numbered
+# rule below (which would otherwise rewrite /bitcoin-dormant/12 to a nonexistent 12.html).
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^bitcoin-dormant/([0-9]+)/?$ /bitcoin-dormant/_page.html [L]
+
+# Subdirectory pages without extension
+# /private-keys/bitcoin → /private-keys/bitcoin.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-z0-9-]+)/([a-z0-9-]+)/?$ /$1/$2.html [L]
+
+# Numbered subpages
+# /bitcoin-puzzle/42 → /bitcoin-puzzle/42.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-z0-9-]+)/([0-9]+)/?$ /$1/$2.html [L]
+
+# Milk Sad numbered pages: only 1, 2 and the last page are pre-rendered. Any other
+# /milk-sad/<chain>/<N> (Random / Go-to-seed / Next past page 2) has no file — render
+# it client-side from that chain's 1.html (milk-sad-fix.js reads N from the path).
+# The !-f guard lets the pre-rendered 1/2/<last>.html files serve themselves first.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^milk-sad/([a-z0-9-]+)/([0-9]+)/?$ /milk-sad/$1/1.html [L]
+
+# Correct MIME types for ES modules + WebAssembly. The bitcoin-puzzle worker is a
+# module worker that `import()`s the wasm-bindgen glue and instantiates the .wasm;
+# browsers reject module scripts served as text/plain and need application/wasm for
+# WebAssembly.instantiateStreaming. Some cPanel Apache configs don't map .wasm.
+<IfModule mod_mime.c>
+    AddType application/javascript .js .mjs
+    AddType application/wasm .wasm
+</IfModule>
+
+# Gzip compression for better performance
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript
+    AddOutputFilterByType DEFLATE image/svg+xml application/json
+</IfModule>
+
+# Browser caching
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresByType text/html "access plus 1 day"
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options SAMEORIGIN
+    Header always set Referrer-Policy strict-origin-when-cross-origin
+</IfModule>
+
+# CORS for assets
+<FilesMatch "\.(js|css|svg|woff2?)$">
+    <IfModule mod_headers.c>
+        Header set Access-Control-Allow-Origin "*"
+    </IfModule>
+</FilesMatch>
+
+# Custom 404
+ErrorDocument 404 /index.html

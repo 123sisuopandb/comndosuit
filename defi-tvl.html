@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="./assets/js/localhost-fix.js"></script>
+    <!-- Theme init FIRST (prevent flash) -->
+    <script>
+        (function() {
+            var theme = localStorage.getItem('cgt-theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            window.CGT_DEFAULT_THEME = 'light';
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title>DeFi TVL Dashboard - Total Value Locked Across Chains &amp; Protocols</title>
+    <meta name="title" content="DeFi TVL Dashboard - Total Value Locked Across Chains &amp; Protocols">
+    <meta name="description" content="Real-time DeFi Total Value Locked (TVL) across Ethereum, Solana, BNB Chain, Arbitrum, Base and more. Track top DeFi protocols, chains, and 24h/7d changes.">
+    <meta name="keywords" content="defi tvl, total value locked, defillama, ethereum tvl, solana tvl, top defi protocols, defi dashboard, crypto tvl, lido tvl, aave tvl">
+    <meta name="author" content="CryptographyTube">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <link rel="canonical" href="http://cryptographytube.org/defi-tvl">
+
+    
+    <!-- Language -->
+    <meta http-equiv="content-language" content="en">
+    <link rel="alternate" hreflang="en" href="http://cryptographytube.org/defi-tvl">
+    <link rel="alternate" hreflang="x-default" href="http://cryptographytube.org/defi-tvl">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://cryptographytube.org/defi-tvl">
+    <meta property="og:title" content="DeFi TVL Dashboard - Total Value Locked Across Chains &amp; Protocols">
+    <meta property="og:description" content="Real-time DeFi Total Value Locked (TVL) across Ethereum, Solana, BNB Chain, Arbitrum, Base and more. Track top DeFi protocols, chains, and 24h/7d changes.">
+    <meta property="og:site_name" content="CryptographyTube">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:image" content="http://cryptographytube.org/assets/png/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="CryptographyTube">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@cryptographytube">
+    <meta name="twitter:title" content="DeFi TVL Dashboard - Total Value Locked Across Chains &amp; Protocols">
+    <meta name="twitter:description" content="Real-time DeFi Total Value Locked (TVL) across Ethereum, Solana, BNB Chain, Arbitrum, Base and more. Track top DeFi protocols, chains, and 24h/7d changes.">
+    <meta name="twitter:image" content="http://cryptographytube.org/assets/png/og-image.png">
+
+    <!-- Additional SEO Meta -->
+    <meta name="application-name" content="CryptographyTube">
+    <meta name="apple-mobile-web-app-title" content="CryptographyTube">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/png/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./assets/png/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./assets/png/apple-touch-icon.png">
+    <link rel="manifest" href="./assets/site.webmanifest">
+    <meta name="theme-color" content="#f7931a">
+    <meta name="msapplication-TileColor" content="#f7931a">
+
+        <!-- Google Analytics (lazy load on user interaction) -->
+    <script>
+        (function(){
+            var loaded = false;
+            function loadGA() {
+                if (loaded) return;
+                loaded = true;
+                var s = document.createElement('script');
+                s.src = 'https://www.googletagmanager.com/gtag/js?id=G-81K6WGXWET';
+                s.async = true;
+                document.head.appendChild(s);
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                window.gtag = gtag;
+                gtag('js', new Date());
+                gtag('config', 'G-81K6WGXWET');
+                ['mousemove','scroll','keydown','click','touchstart'].forEach(function(e){
+                    document.removeEventListener(e, loadGA);
+                });
+            }
+            ['mousemove','scroll','keydown','click','touchstart'].forEach(function(e){
+                document.addEventListener(e, loadGA, {once: true, passive: true});
+            });
+            setTimeout(loadGA, 4000);
+        })();
+    </script>
+
+    <!-- Google AdSense (lazy load on user interaction) -->
+    <script>
+        (function(){
+            var loaded = false;
+            function loadAds() {
+                if (loaded) return;
+                loaded = true;
+                var s = document.createElement('script');
+                s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+                s.async = true;
+                s.crossOrigin = 'anonymous';
+                s.onload = function() {
+                    var ads = document.querySelectorAll('.adsbygoogle');
+                    ads.forEach(function(ad) {
+                        if (!ad.dataset.adsbygoogleStatus) {
+                            (adsbygoogle = window.adsbygoogle || []).push({});
+                        }
+                    });
+                };
+                document.head.appendChild(s);
+                ['scroll','click','keydown','touchstart','mousemove'].forEach(function(e){
+                    window.removeEventListener(e, loadAds);
+                });
+            }
+            ['scroll','click','keydown','touchstart','mousemove'].forEach(function(e){
+                window.addEventListener(e, loadAds, {once: true, passive: true});
+            });
+            setTimeout(loadAds, 5000);
+        })();
+    </script>
+    
+    <!-- Preconnect (high priority for critical resources) -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com">
+        <link rel="dns-prefetch" href="https://blockchain.info">
+    <link rel="dns-prefetch" href="https://api.etherscan.io">
+
+    <!-- Preload critical assets -->
+    <link rel="preload" href="./assets/css/bootstrap-purged.min.css" as="style">
+    <link rel="preload" href="./assets/css/style.min.css" as="style">
+
+    <!-- Critical CSS (inline for fast first paint) -->
+    <style>/* CryptographyTube Critical CSS - Inlined for fast first paint */
+:root,[data-bs-theme="light"]{--cgt-bg:#f5f5f5;--cgt-bg-secondary:#fff;--cgt-text:#212529;--cgt-border:#dee2e6;--cgt-primary:#0d6efd;--cgt-navbar-bg:rgba(255,255,255,.98);--navbar-height:56px}
+[data-bs-theme="dark"]{--cgt-bg:#121212;--cgt-bg-secondary:#1e1e1e;--cgt-text:#e9ecef;--cgt-border:#333;--cgt-primary:#60a5fa;--cgt-navbar-bg:rgba(30,30,30,.98)}
+*,::after,::before{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--cgt-bg);color:var(--cgt-text);display:flex;flex-direction:column;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+.main-content{flex:1;padding-top:calc(var(--navbar-height) + 1rem);padding-bottom:1rem}
+.navbar{position:fixed;top:0;left:0;right:0;z-index:1030;background:var(--cgt-navbar-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--cgt-border);height:var(--navbar-height);display:flex;align-items:center}
+.navbar .container{display:flex;align-items:center;width:100%;max-width:1320px;margin:0 auto;padding:0 1rem}
+.navbar-brand{display:flex;align-items:center;text-decoration:none;color:var(--cgt-text)}
+.cgt-logo{display:flex;align-items:center;gap:.5rem}
+.cgt-logo-text{font-weight:700;font-size:1.1rem}
+.container{width:100%;max-width:1320px;margin:0 auto;padding:0 1rem}
+.loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:9999}
+.loading-overlay.show{display:flex}
+.spinner-border{width:2rem;height:2rem;border:.25em solid currentColor;border-right-color:transparent;border-radius:50%;animation:spinner .75s linear infinite}
+@keyframes spinner{to{transform:rotate(360deg)}}
+.global-search-trigger{display:flex;align-items:center;gap:.75rem;padding:.625rem 1rem;background:var(--cgt-bg-secondary);border:1px solid var(--cgt-border);border-radius:8px;cursor:pointer;max-width:480px}
+.global-search-placeholder{flex:1;color:#6c757d;font-size:.875rem}
+/* Collapse */
+.collapse:not(.show){display:none}
+.collapse.show{display:block}
+.collapsing{height:0;overflow:hidden;transition:height .3s cubic-bezier(0.4,0,0.2,1)}
+/* Navbar collapse & toggler */
+.navbar-toggler{padding:.25rem .75rem;font-size:1.25rem;background:transparent;border:1px solid transparent;border-radius:.375rem;cursor:pointer}
+.navbar-toggler-icon{display:inline-block;width:1.5em;height:1.5em;background-repeat:no-repeat;background-position:center;background-size:100%;transition:transform .25s cubic-bezier(0.4,0,0.2,1),opacity .15s;background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2833,37,41,0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e")}
+[data-bs-theme="dark"] .navbar-toggler-icon{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255,255,255,0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e")}
+.navbar-toggler[aria-expanded="true"] .navbar-toggler-icon{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2833,37,41,0.75%29' stroke-linecap='round' stroke-width='2' d='M7 7l16 16M7 23l16-16'/%3e%3c/svg%3e")}
+[data-bs-theme="dark"] .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255,255,255,0.75%29' stroke-linecap='round' stroke-width='2' d='M7 7l16 16M7 23l16-16'/%3e%3c/svg%3e")}
+@media (max-width:1199.98px){.navbar-collapse{position:absolute;top:100%;left:0;right:0;background:var(--cgt-navbar-bg);border-bottom:1px solid var(--cgt-border);padding:1rem;z-index:1020;box-shadow:0 4px 6px rgba(0,0,0,.1)}.navbar-nav{flex-direction:column}.nav-link{padding:.5rem 0}}
+/* Bootstrap grid basics - prevent CLS */
+.row{display:flex;flex-wrap:wrap;margin-right:-.75rem;margin-left:-.75rem}
+.row>*{flex-shrink:0;width:100%;max-width:100%;padding-right:.75rem;padding-left:.75rem}
+.g-3{--bs-gutter-x:.75rem;--bs-gutter-y:.75rem;margin-top:calc(-.75rem)}
+.g-3>*{padding-right:calc(var(--bs-gutter-x) * .5);padding-left:calc(var(--bs-gutter-x) * .5);margin-top:var(--bs-gutter-y)}
+.justify-content-center{justify-content:center}
+.text-center{text-align:center}
+.mb-3{margin-bottom:1rem}
+.mb-4{margin-bottom:1.5rem}
+.h2{font-size:1.5rem}
+.fw-bold{font-weight:700}
+.lead{font-size:1.1rem;font-weight:300}
+.text-muted{color:#6c757d}
+[data-bs-theme="dark"] .text-muted{color:#9ca3af}
+.col-12{flex:0 0 auto;width:100%}
+@media (min-width:576px){.col-sm-6{flex:0 0 auto;width:50%}}
+@media (min-width:768px){.col-md-3{flex:0 0 auto;width:25%}}
+/* Header */
+header{margin-bottom:1.5rem}
+/* Tool cards - prevent CLS */
+.tool-card{display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:1.25rem 1rem;background:var(--cgt-bg-secondary);border:1px solid var(--cgt-border);border-radius:12px;text-decoration:none;color:var(--cgt-text);text-align:center;height:100%;min-height:160px}
+.tool-card-icon{width:48px;height:48px;display:flex;align-items:center;justify-content:center}
+.tool-card-icon img{width:100%;height:100%;object-fit:contain}
+.tool-card-name{font-size:.9rem;font-weight:600;line-height:1.3}
+.tool-card-desc{font-size:.75rem;color:#6c757d;line-height:1.4}
+/* FA icons - prevent CLS */
+.fa-icon{display:inline-block;vertical-align:-.125em}
+.module-icon{display:inline-block}
+</style>
+
+    <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"DeFi TVL","url":"http://cryptographytube.org/defi-tvl","description":"Real-time DeFi Total Value Locked (TVL) across Ethereum, Solana, BNB Chain, Arbitrum, Base and more. Track top DeFi protocols, chains, and 24h/7d changes.","applicationCategory":"UtilityApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    
+    <!-- Bootstrap CSS (sync load to prevent CLS) -->
+    <link href="./assets/css/bootstrap-purged.min.css" rel="stylesheet">
+
+    <!-- Custom CSS (sync load to prevent CLS) -->
+    <link href="./assets/css/style.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- ========== NAVBAR ========== -->
+    <nav class="navbar navbar-expand-xl fixed-top">
+        <div class="container">
+            <!-- Brand -->
+            <a class="navbar-brand d-flex align-items-center" href="./index.html">
+                <span class="cgt-logo">
+                    <span class="cgt-logo-icon"><img src="./assets/svgs/solid/key.svg" class="fa-icon " width="18" height="18" alt=""></span>
+                    <span class="cgt-logo-text"><span>CRYPTOGRAPHYTUBE.ORG</span></span>
+                </span>
+            </a>
+
+            <!-- Header Actions (pill container) -->
+            <div class="navbar-actions order-xl-last">
+                <button class="navbar-action-btn" id="walletSearchBtn" title="Search Wallet" data-bs-toggle="modal" data-bs-target="#walletSearchModal">
+                    <img src="./assets/svgs/solid/magnifying-glass.svg" class="fa-icon " width="15" height="15" alt="">                </button>
+                <button class="navbar-action-btn" id="themeToggle" title="Toggle theme">
+                    <span id="themeIconLight"><img src="./assets/svgs/solid/sun.svg" class="fa-icon " width="15" height="15" alt=""></span>
+                    <span id="themeIconDark"><img src="./assets/svgs/solid/moon.svg" class="fa-icon " width="15" height="15" alt=""></span>
+                </button>
+                <a href="https://t.me/cryptographytubeofficial" class="navbar-action-btn navbar-action-tg" title="Telegram" target="_blank" rel="noopener">
+                    <img src="./assets/svgs/brands/telegram.svg" class="fa-icon " width="16" height="16" alt="">                </a>
+            </div>
+
+            <!-- Mobile Toggle -->
+            <button class="navbar-toggler border-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-label="Toggle navigation" aria-controls="navbarMain" aria-expanded="false">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Nav Content -->
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <!-- Main Nav -->
+                <ul class="navbar-nav me-auto mb-2 mb-xl-0">
+                                        <li class="nav-item">
+                        <a class="nav-link "
+                           href="./private-keys.html">
+                            <img src="./assets/svgs/solid/key.svg" class="fa-icon me-1" width="14" height="14" alt="">                            Directory                        </a>
+                    </li>
+                                        <li class="nav-item">
+                        <a class="nav-link "
+                           href="./mnemonic-seeds.html">
+                            <img src="./assets/svgs/solid/seedling.svg" class="fa-icon me-1" width="14" height="14" alt="">                            Seed Phrases                        </a>
+                    </li>
+                                        <li class="nav-item">
+                        <a class="nav-link "
+                           href="./bitcoin-puzzle.html">
+                            <img src="./assets/svgs/solid/puzzle-piece.svg" class="fa-icon me-1" width="14" height="14" alt="">                            BTC Puzzle                        </a>
+                    </li>
+                                        <li class="nav-item">
+                        <a class="nav-link "
+                           href="./mnemonic-converter.html">
+                            <img src="./assets/svgs/solid/seedling.svg" class="fa-icon me-1" width="14" height="14" alt="">                            Mnemonic                        </a>
+                    </li>
+                                        <li class="nav-item">
+                        <a class="nav-link "
+                           href="./vanity-generator.html">
+                            <img src="./assets/svgs/solid/wand-magic-sparkles.svg" class="fa-icon me-1" width="14" height="14" alt="">                            Vanity                        </a>
+                    </li>
+                                        <li class="nav-item">
+                        <a class="nav-link "
+                           href="./milk-sad.html">
+                            <img src="./assets/svgs/solid/bug.svg" class="fa-icon me-1" width="14" height="14" alt="">                            Milk Sad                        </a>
+                    </li>
+                                        <!-- HelioWallet - External Link -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://heliowallet.com/" target="_blank" rel="noopener">
+                            <img src="./assets/svgs/solid/wallet.svg" class="fa-icon me-1" width="14" height="14" alt="">                            Wallet
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ========== MAIN ========== -->
+    <main class="main-content">
+        <!-- Global Search Bar -->
+        <div class="container mb-3">
+            <div class="global-search-trigger" data-bs-toggle="modal" data-bs-target="#walletSearchModal">
+                <span class="global-search-icon"><img src="./assets/svgs/solid/magnifying-glass.svg" class="fa-icon " width="14" height="14" alt=""></span>
+                <span class="global-search-placeholder">Search key, WIF, mnemonic across 18 chains</span>
+                <span class="global-search-shortcut">
+                    <kbd>Ctrl</kbd><kbd>K</kbd>
+                </span>
+            </div>
+        </div>
+
+        
+        <!-- Page Content -->
+            <div class="container">
+        <header class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <img src="./assets/svgs/module/defi-tvl.svg" width="48" height="48" class="module-icon " alt="defi-tvl" loading="lazy">                <div>
+                    <h1 class="h4 mb-0 fw-bold">DeFi TVL</h1>
+                    <small class="text-muted">Live Total Value Locked across DeFi chains and protocols</small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <small class="text-muted" data-role="updated-at">
+                                            Updated 07:37 UTC
+                                    </small>
+                <button class="btn btn-sm btn-outline-primary" onclick="window.location.reload()" title="Refresh">
+                    <img src="./assets/svgs/solid/rotate.svg" class="fa-icon me-1" width="12" height="12" alt=""> Refresh
+                </button>
+            </div>
+        </header>
+
+        
+        <!-- Global Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card h-100"><div class="card-body text-center">
+                    <div class="fs-5 fw-bold text-success">
+                        $76.75B                    </div>
+                    <small class="text-muted">Global TVL</small>
+                    <div class="small">
+                                                    <span class="tvl-change-pos">
+                                +1.51% 1d
+                            </span>
+                                                                            &middot;
+                            <span class="tvl-change-pos">
+                                +5.48% 7d
+                            </span>
+                                            </div>
+                </div></div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card h-100"><div class="card-body text-center">
+                    <div class="fs-5 fw-bold text-primary">
+                        459                    </div>
+                    <small class="text-muted">Chains</small>
+                </div></div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card h-100"><div class="card-body text-center">
+                    <div class="fs-5 fw-bold text-warning">
+                        7,891                    </div>
+                    <small class="text-muted">Protocols</small>
+                </div></div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card h-100"><div class="card-body text-center">
+                    <div class="fs-5 fw-bold text-info">
+                        Ethereum                    </div>
+                    <small class="text-muted">Top Chain</small>
+                </div></div>
+            </div>
+        </div>
+
+        <!-- Top Chains -->
+        <div class="card mb-4">
+            <div class="card-header py-2 d-flex align-items-center justify-content-between">
+                <h6 class="mb-0 fw-bold"><img src="./assets/svgs/solid/link.svg" class="fa-icon me-2" width="14" height="14" alt=""> Top Chains by TVL</h6>
+                <small class="text-muted">Top 25 of 459</small>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead>
+                        <tr class="small text-muted">
+                            <th style="width: 40px;">#</th>
+                            <th>Chain</th>
+                            <th class="text-end">TVL</th>
+                            <th class="text-end d-none d-md-table-cell" style="width: 110px;">Token</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                                                <tr>
+                            <td class="text-muted small">1</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Ethereum</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$41.85B</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                ETH                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">2</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/svgs/chain/solana.svg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Solana</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$4.97B</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                SOL                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">3</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/svgs/chain/bnb.svg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">BSC</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$4.93B</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                BNB                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">4</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/svgs/chain/tron.svg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Tron</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$4.82B</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                TRON                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">5</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/svgs/chain/base.svg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Base</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$4.63B</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                —                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">6</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/svgs/chain/bitcoin.svg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Bitcoin</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$4.30B</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                BTC                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">7</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/crypto/provenance.png"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Provenance</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$1.53B</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                HASH                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">8</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/svgs/chain/hyperliquid.svg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Hyperliquid L1</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$1.33B</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                HYPE                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">9</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/svgs/chain/arbitrum.svg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Arbitrum</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$1.25B</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                ARB                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">10</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/svgs/chain/polygon.svg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Polygon</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$856.93M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                POL                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">11</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/crypto/monad.jpg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Monad</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$701.75M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                MON                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">12</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/crypto/plasma.jpg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Plasma</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$655.20M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                XPL                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">13</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/svgs/chain/sui.svg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Sui</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$450.62M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                SUI                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">14</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/svgs/chain/avalanche.svg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Avalanche</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$436.10M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                AVAX                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">15</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/svgs/chain/optimism.svg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">OP Mainnet</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$309.70M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                OP                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">16</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="https://icons.llama.fi/robinhood-chain.jpg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Robinhood Chain</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$268.85M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                —                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">17</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/crypto/cronos.png"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Cronos</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$258.34M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                CRO                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">18</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/crypto/stellar.png"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Stellar</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$233.05M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                XLM                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">19</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="https://icons.llama.fi/anubis.jpg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Anubis</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$195.38M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                —                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">20</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/crypto/starknet-token.png"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Starknet</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$173.42M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                STRK                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">21</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/crypto/movement.jpg"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Movement</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$132.91M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                MOVE                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">22</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/crypto/ink.png"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Ink</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$125.91M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                —                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">23</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/crypto/aptos.png"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Aptos</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$121.14M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                APT                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">24</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/crypto/flare.png"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Flare</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$118.28M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                FLR                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">25</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="./assets/crypto/near-protocol.png"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                    <span class="fw-semibold">Near</span>
+                                </div>
+                            </td>
+                            <td class="text-end font-monospace">$117.84M</td>
+                            <td class="text-end d-none d-md-table-cell text-muted small">
+                                NEAR                            </td>
+                        </tr>
+                                            </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Top Protocols -->
+        <div class="card mb-4">
+            <div class="card-header py-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <h6 class="mb-0 fw-bold"><img src="./assets/svgs/solid/cubes.svg" class="fa-icon me-2" width="14" height="14" alt=""> Top Protocols by TVL</h6>
+                <div class="form-check form-switch small mb-0">
+                    <input class="form-check-input" type="checkbox" id="includeCex"
+                           onchange="DefiTvl.toggleCex(this.checked)">
+                    <label class="form-check-label text-muted" for="includeCex">Include CEX / Chain / Bridge</label>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead>
+                        <tr class="small text-muted">
+                            <th style="width: 40px;">#</th>
+                            <th>Protocol</th>
+                            <th class="d-none d-md-table-cell">Category</th>
+                            <th class="d-none d-lg-table-cell">Chains</th>
+                            <th class="text-end">TVL</th>
+                            <th class="text-end" style="width: 80px;">1d</th>
+                            <th class="text-end d-none d-md-table-cell" style="width: 80px;">7d</th>
+                        </tr>
+                    </thead>
+                    <tbody data-role="protocols-tbody">
+                                                <tr>
+                            <td class="text-muted small">1</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/lido"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://lido.fi/" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Lido</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Liquid Staking                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/solana.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Solana"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/moonbeam.png"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Moonbeam"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/moonriver.png"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Moonriver"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/terra-luna.png"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Terra"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$17.69B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +3.63%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +7.74%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">2</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/aave-v3"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://aave.com" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Aave V3</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Lending                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/plasma.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Plasma"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/base.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Base"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/arbitrum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Arbitrum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/monad.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Monad"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <span class="text-muted small">+17</span>
+                                                                    </div>
+                            </td>
+                            <td class="text-end font-monospace">$14.01B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +2.17%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +7.24%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">3</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/ssv-network"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://ssv.network/" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">SSV Network</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Staking Pool                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$9.37B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +3.73%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +7.69%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">4</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/morpho-blue"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://app.morpho.org" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Morpho Blue</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Lending                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/base.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Base"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/hyperliquid.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Hyperliquid L1"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="https://icons.llama.fi/robinhood-chain.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Robinhood Chain"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/monad.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Monad"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <span class="text-muted small">+35</span>
+                                                                    </div>
+                            </td>
+                            <td class="text-end font-monospace">$7.51B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +1.51%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +6.07%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">5</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/binance-staked-eth"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://www.binance.com/en/wbeth" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Binance staked ETH</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Liquid Staking                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/bnb.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Binance"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$7.16B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +3.92%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +8.07%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">6</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/sky-lending"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://app.sky.money/" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Sky Lending</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                CDP                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$6.10B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +4.35%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +4.21%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">7</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/eigencloud"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://www.eigencloud.xyz" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">EigenCloud</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Restaking                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$5.19B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +3.13%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +7.30%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">8</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/ethena-usde"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://www.app.ethena.fi/join/3y20d" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Ethena USDe</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Basis Trading                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$4.02B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +0.30%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +4.53%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">9</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/sparklend"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://app.spark.fi" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">SparkLend</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Lending                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/xdai.png"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="xDai"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$3.67B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +1.53%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +9.66%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">10</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/babylon-protocol"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://babylonlabs.io" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Babylon Protocol</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Restaking                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/bitcoin.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Bitcoin"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$3.36B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +2.34%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +24.84%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">11</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/blackrock-buidl"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://securitize.io/" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">BlackRock BUIDL</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                RWA                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/aptos.png"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Aptos"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/avalanche.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Avalanche"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/solana.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Solana"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/bnb.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Binance"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <span class="text-muted small">+3</span>
+                                                                    </div>
+                            </td>
+                            <td class="text-end font-monospace">$3.34B</td>
+                            <td class="text-end small tvl-change-neg">
+                                -2.88%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-neg">
+                                -9.37%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">12</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/justlend-v1"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://justlend.org/" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">JustLend V1</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Lending                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/tron.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Tron"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$3.29B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +1.16%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +0.83%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">13</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/ether.fi"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://www.ether.fi/refer/04bb2542" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">ether.fi Stake</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Liquid Restaking                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/arbitrum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Arbitrum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/base.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Base"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$3.10B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +4.60%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +4.62%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">14</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/circle-usyc"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://www.circle.com/usyc" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Circle USYC</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                RWA                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/bnb.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Binance"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="https://icons.llama.fi/noble.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Noble"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/near-protocol.png"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Near"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$2.96B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +0.03%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-neg">
+                                -1.81%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">15</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/arbitrum-bridge"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://portal.arbitrum.io/bridge" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Arbitrum Bridge</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Canonical Bridge                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$2.91B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +2.05%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +5.15%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">16</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/tether-gold"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://gold.tether.to/" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Tether Gold</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                RWA                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/monad.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Monad"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/plasma.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Plasma"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/avalanche.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Avalanche"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/arbitrum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Arbitrum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <span class="text-muted small">+3</span>
+                                                                    </div>
+                            </td>
+                            <td class="text-end font-monospace">$2.89B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +0.89%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +0.89%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">17</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/ondo-yield-assets"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://ondo.finance" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Ondo Yield Assets</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                RWA                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/stellar.png"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Stellar"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/sei.png"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Sei"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/xrp.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ripple"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/solana.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Solana"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <span class="text-muted small">+7</span>
+                                                                    </div>
+                            </td>
+                            <td class="text-end font-monospace">$2.55B</td>
+                            <td class="text-end small tvl-change-neg">
+                                -0.18%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-neg">
+                                -0.08%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">18</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/base-bridge"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://docs.base.org/base-chain/network-information/bridges-mainnet" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Base Bridge</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Canonical Bridge                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$2.38B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +3.46%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +6.95%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">19</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/grove-finance"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://data.grove.finance/" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Grove Finance</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Onchain Capital Allocator                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/avalanche.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Avalanche"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/base.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Base"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/plume-mainnet.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Plume Mainnet"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$2.35B</td>
+                            <td class="text-end small tvl-change-neg">
+                                -3.48%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-neg">
+                                -3.12%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">20</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/steakhouse-financial"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://www.steakhouse.financial/" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Steakhouse Financial</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Risk Curators                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/base.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Base"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/solana.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Solana"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/monad.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Monad"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/katana.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Katana"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <span class="text-muted small">+4</span>
+                                                                    </div>
+                            </td>
+                            <td class="text-end font-monospace">$2.34B</td>
+                            <td class="text-end small tvl-change-neg">
+                                -0.58%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +2.04%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">21</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/maple"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://www.maple.finance" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Maple</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Lending                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/solana.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Solana"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$2.25B</td>
+                            <td class="text-end small tvl-change-neg">
+                                -1.71%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-neg">
+                                -0.92%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">22</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/sentora"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://sentora.com/" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Sentora</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Risk Curators                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/ink.png"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ink"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/solana.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Solana"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="https://icons.llama.fi/tempo.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Tempo"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/stellar.png"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Stellar"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$2.11B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +0.55%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +4.12%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">23</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/paxos-gold"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://paxos.com/paxgold/" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Paxos Gold</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                RWA                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$1.81B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +0.80%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +0.82%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">24</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/pancakeswap-amm"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://pancakeswap.finance/" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">PancakeSwap AMM</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Dexs                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/bnb.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Binance"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/aptos.png"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Aptos"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/zksync.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="zkSync Era"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/base.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Base"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <span class="text-muted small">+6</span>
+                                                                    </div>
+                            </td>
+                            <td class="text-end font-monospace">$1.68B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +0.58%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +1.13%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">25</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/centrifuge-protocol"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://centrifuge.io" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Centrifuge Protocol</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                RWA                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/avalanche.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Avalanche"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/base.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Base"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/plume-mainnet.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Plume Mainnet"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/crypto/monad.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Monad"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <span class="text-muted small">+5</span>
+                                                                    </div>
+                            </td>
+                            <td class="text-end font-monospace">$1.63B</td>
+                            <td class="text-end small tvl-change-neg">
+                                -0.10%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-neg">
+                                -0.83%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">26</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/spark-liquidity-layer"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://app.spark.fi" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Spark Liquidity Layer</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                Onchain Capital Allocator                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/svgs/chain/ethereum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Ethereum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/arbitrum.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Arbitrum"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/base.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Base"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="./assets/svgs/chain/optimism.svg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Optimism"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                        <img src="https://icons.llama.fi/unichain.jpg"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Unichain"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <span class="text-muted small">+3</span>
+                                                                    </div>
+                            </td>
+                            <td class="text-end font-monospace">$1.61B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +0.25%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +0.25%                            </td>
+                        </tr>
+                                                <tr>
+                            <td class="text-muted small">27</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                                                        <img src="https://icons.llamao.fi/icons/protocols/figure-markets-exchange"
+                                         class="tvl-protocol-logo" loading="lazy"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                            <a href="https://www.figuremarkets.com/crypto-exchange/" target="_blank" rel="noopener"
+                                       class="text-decoration-none fw-semibold">Figure Markets Exchange</a>
+                                                                    </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted small">
+                                OTC Marketplace                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <div class="tvl-chains-row">
+                                                                        <img src="./assets/crypto/provenance.png"
+                                         class="tvl-chain-icon" loading="lazy"
+                                         title="Provenance"
+                                         onerror="this.style.visibility='hidden'" alt="">
+                                                                                                        </div>
+                            </td>
+                            <td class="text-end font-monospace">$1.53B</td>
+                            <td class="text-end small tvl-change-pos">
+                                +0.42%                            </td>
+                            <td class="text-end d-none d-md-table-cell small tvl-change-pos">
+                                +2.12%                            </td>
+                        </tr>
+                                            </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="alert alert-secondary small">
+            <strong><img src="./assets/svgs/solid/circle-info.svg" class="fa-icon me-1" width="12" height="12" alt=""> Data source.</strong>
+            <span class="text-muted">Pulled from <a href="https://defillama.com" target="_blank" rel="noopener">DefiLlama</a> and cached on our side, refreshed every 10 minutes. CEX entries (Binance, OKX...) are off-chain custodial holdings and are hidden by default.</span>
+        </div>
+
+        <script>
+            // Full protocol list (top 50, all categories) — used by JS to re-render
+            // when the user toggles the "Include CEX / Chain / Bridge" switch.
+            window.DEFI_TVL_PROTOCOLS = [{"name":"Binance CEX","slug":"binance-cex","category":"CEX","tvl":138748791409.23358,"change_1d":1.0919091577242739,"change_7d":2.158548531346156,"logo":"https://icons.llamao.fi/icons/protocols/binance-cex","url":"https://www.binance.com","chains":["Ethereum","Bitcoin","Binance","Solana","Ripple","Tron"],"chainCount":32},{"name":"OKX","slug":"okx","category":"CEX","tvl":21967055269.554607,"change_1d":-0.4582348531732805,"change_7d":0.9366331601814153,"logo":"https://icons.llamao.fi/icons/protocols/okx","url":"https://www.okx.com","chains":["Ethereum","Bitcoin","Solana","Tron","Doge","Ripple"],"chainCount":19},{"name":"Lido","slug":"lido","category":"Liquid Staking","tvl":17688963063.849888,"change_1d":3.633075858427361,"change_7d":7.737576099607992,"logo":"https://icons.llamao.fi/icons/protocols/lido","url":"https://lido.fi/","chains":["Ethereum","Solana","Moonbeam","Moonriver","Terra"],"chainCount":5},{"name":"Bitfinex","slug":"bitfinex","category":"CEX","tvl":16931863345.769026,"change_1d":1.5795575214820872,"change_7d":3.4473063939049524,"logo":"https://icons.llamao.fi/icons/protocols/bitfinex","url":"https://www.bitfinex.com","chains":["Bitcoin","Ethereum","Tron","Solana","Avalanche","Near"],"chainCount":20},{"name":"Aave V3","slug":"aave-v3","category":"Lending","tvl":14011757067.913942,"change_1d":2.1731320063186814,"change_7d":7.236689349490376,"logo":"https://icons.llamao.fi/icons/protocols/aave-v3","url":"https://aave.com","chains":["Ethereum","Plasma","Base","Arbitrum","Monad","Avalanche"],"chainCount":22},{"name":"Bybit","slug":"bybit","category":"CEX","tvl":13544415003.706072,"change_1d":1.784274799254959,"change_7d":1.9892217408161486,"logo":"https://icons.llamao.fi/icons/protocols/bybit","url":"https://www.bybit.com","chains":["Ethereum","Bitcoin","Tron","Solana","Mantle","Binance"],"chainCount":36},{"name":"Robinhood","slug":"robinhood","category":"CEX","tvl":11840245328.220032,"change_1d":2.291125756385611,"change_7d":5.263415523764436,"logo":"https://icons.llamao.fi/icons/protocols/robinhood","url":"https://robinhood.com","chains":["Bitcoin","Ethereum","Polygon","Avalanche"],"chainCount":4},{"name":"SSV Network","slug":"ssv-network","category":"Staking Pool","tvl":9371537169.16392,"change_1d":3.7332183839923374,"change_7d":7.687130053433336,"logo":"https://icons.llamao.fi/icons/protocols/ssv-network","url":"https://ssv.network/","chains":["Ethereum"],"chainCount":1},{"name":"Morpho Blue","slug":"morpho-blue","category":"Lending","tvl":7514483229.045715,"change_1d":1.5146069208388013,"change_7d":6.074275176590874,"logo":"https://icons.llamao.fi/icons/protocols/morpho-blue","url":"https://app.morpho.org","chains":["Ethereum","Base","Hyperliquid L1","Robinhood Chain","Monad","Katana"],"chainCount":40},{"name":"WBTC","slug":"wbtc","category":"Bridge","tvl":7480254424.386066,"change_1d":1.9331682244138761,"change_7d":4.6625461235666705,"logo":"https://icons.llamao.fi/icons/protocols/wbtc","url":"https://wbtc.network/","chains":["Bitcoin"],"chainCount":1},{"name":"Binance staked ETH","slug":"binance-staked-eth","category":"Liquid Staking","tvl":7160921124.201578,"change_1d":3.9183468710492804,"change_7d":8.073403395194774,"logo":"https://icons.llamao.fi/icons/protocols/binance-staked-eth","url":"https://www.binance.com/en/wbeth","chains":["Ethereum","Binance"],"chainCount":2},{"name":"LayerZero V2","slug":"layerzero-v2","category":"Bridge","tvl":6814239522.451259,"change_1d":-0.15809140552993028,"change_7d":-1.730128966167527,"logo":"https://icons.llamao.fi/icons/protocols/layerzero-v2","url":"https://layerzero.network/","chains":["Ethereum","Arbitrum","Base","Avalanche","Polygon","Stable"],"chainCount":60},{"name":"Coinbase Bridge","slug":"coinbase-bridge","category":"Bridge","tvl":6245749774.684695,"change_1d":2.3763919131706217,"change_7d":5.0070055038626435,"logo":"https://icons.llamao.fi/icons/protocols/coinbase-bridge","url":"https://www.coinbase.com/","chains":["Bitcoin","Ripple","Doge","Litecoin","Cardano"],"chainCount":5},{"name":"Sky Lending","slug":"sky-lending","category":"CDP","tvl":6102949616.575393,"change_1d":4.3472080217175915,"change_7d":4.207593779023625,"logo":"https://icons.llamao.fi/icons/protocols/sky-lending","url":"https://app.sky.money/","chains":["Ethereum"],"chainCount":1},{"name":"Hyperliquid Bridge","slug":"hyperliquid-bridge","category":"Bridge","tvl":5931735988.591045,"change_1d":0.05264121407857658,"change_7d":1.4365605537048651,"logo":"https://icons.llamao.fi/icons/protocols/hyperliquid","url":"https://app.hyperliquid.xyz","chains":["Hyperliquid L1","Arbitrum"],"chainCount":2},{"name":"EigenCloud","slug":"eigencloud","category":"Restaking","tvl":5189049726.17149,"change_1d":3.1324630883739815,"change_7d":7.295547419121377,"logo":"https://icons.llamao.fi/icons/protocols/eigencloud","url":"https://www.eigencloud.xyz","chains":["Ethereum"],"chainCount":1},{"name":"Bitget","slug":"bitget","category":"CEX","tvl":5166748825.119421,"change_1d":2.8328988821054253,"change_7d":3.173215821947494,"logo":"https://icons.llamao.fi/icons/protocols/bitget","url":"https://www.bitget.com","chains":["Bitcoin","Ethereum","Solana","Tron","Binance","Ripple"],"chainCount":24},{"name":"MEXC","slug":"mexc","category":"CEX","tvl":4738651359.0027275,"change_1d":1.1639719682825103,"change_7d":1.9635832754300253,"logo":"https://icons.llamao.fi/icons/protocols/mexc","url":"https://www.mexc.com","chains":["Ethereum","Bitcoin","Solana","Tron","Binance","Ripple"],"chainCount":15},{"name":"Binance Bitcoin","slug":"binance-bitcoin","category":"Bridge","tvl":4470746241.721232,"change_1d":1.9331682244138761,"change_7d":4.6625461235666705,"logo":"https://icons.llamao.fi/icons/protocols/binance-bitcoin","url":"https://www.binance.com/en/collateral-btokens","chains":["Bitcoin"],"chainCount":1},{"name":"Gemini","slug":"gemini","category":"CEX","tvl":4426464012.52696,"change_1d":0.21927049552972733,"change_7d":2.8208108131729404,"logo":"https://icons.llamao.fi/icons/protocols/gemini","url":"https://www.gemini.com","chains":["Bitcoin","Ethereum"],"chainCount":2},{"name":"Gate","slug":"gate","category":"CEX","tvl":4190751484.654144,"change_1d":4.556712020850355,"change_7d":9.036724550825667,"logo":"https://icons.llamao.fi/icons/protocols/gate","url":"https://www.gate.com","chains":["Ethereum","Bitcoin","Binance","Solana","Doge","Tron"],"chainCount":105},{"name":"HTX","slug":"htx","category":"CEX","tvl":4056587613.0862856,"change_1d":0.5088621714102857,"change_7d":1.08367726559446,"logo":"https://icons.llamao.fi/icons/protocols/htx","url":"https://www.htx.com/","chains":["Tron","Bitcoin","Ethereum","Ripple","Doge","Solana"],"chainCount":19},{"name":"Ethena USDe","slug":"ethena-usde","category":"Basis Trading","tvl":4022133278.8820868,"change_1d":0.30379676405050304,"change_7d":4.532938201961429,"logo":"https://icons.llamao.fi/icons/protocols/ethena-usde","url":"https://www.app.ethena.fi/join/3y20d","chains":["Ethereum"],"chainCount":1},{"name":"Deribit","slug":"deribit","category":"CEX","tvl":3906552153.8782797,"change_1d":1.3637997229551502,"change_7d":3.3118361033890125,"logo":"https://icons.llamao.fi/icons/protocols/deribit","url":"https://www.deribit.com","chains":["Bitcoin","Ethereum","Solana","Ripple","Binance","EthereumPoW"],"chainCount":6},{"name":"SparkLend","slug":"sparklend","category":"Lending","tvl":3668713894.5153704,"change_1d":1.528151265837181,"change_7d":9.661892534251805,"logo":"https://icons.llamao.fi/icons/protocols/sparklend","url":"https://app.spark.fi","chains":["Ethereum","xDai"],"chainCount":2},{"name":"USDT0","slug":"usdt0","category":"Bridge","tvl":3473180555.4033456,"change_1d":-0.8789209570196732,"change_7d":-3.494158904150723,"logo":"https://icons.llamao.fi/icons/protocols/usdt0","url":"https://usdt0.to","chains":["Ethereum"],"chainCount":1},{"name":"Babylon Protocol","slug":"babylon-protocol","category":"Restaking","tvl":3355050997.9596276,"change_1d":2.339987936753758,"change_7d":24.8390528942698,"logo":"https://icons.llamao.fi/icons/protocols/babylon-protocol","url":"https://babylonlabs.io","chains":["Bitcoin"],"chainCount":1},{"name":"BlackRock BUIDL","slug":"blackrock-buidl","category":"RWA","tvl":3339368126.790449,"change_1d":-2.8822208994183143,"change_7d":-9.367485796998082,"logo":"https://icons.llamao.fi/icons/protocols/blackrock-buidl","url":"https://securitize.io/","chains":["Ethereum","Aptos","Avalanche","Solana","Binance","Optimism"],"chainCount":8},{"name":"JustLend V1","slug":"justlend-v1","category":"Lending","tvl":3293836932.3731923,"change_1d":1.1586553323090527,"change_7d":0.828895997743075,"logo":"https://icons.llamao.fi/icons/protocols/justlend-v1","url":"https://justlend.org/","chains":["Tron"],"chainCount":1},{"name":"ether.fi Stake","slug":"ether.fi-stake","category":"Liquid Restaking","tvl":3096884283.148149,"change_1d":4.600942625504658,"change_7d":4.61970999117716,"logo":"https://icons.llamao.fi/icons/protocols/ether.fi","url":"https://www.ether.fi/refer/04bb2542","chains":["Arbitrum","Ethereum","Base"],"chainCount":3},{"name":"Circle USYC","slug":"circle-usyc","category":"RWA","tvl":2959454119.676839,"change_1d":0.028704874723800344,"change_7d":-1.8102351737411198,"logo":"https://icons.llamao.fi/icons/protocols/circle-usyc","url":"https://www.circle.com/usyc","chains":["Binance","Ethereum","Noble","Near"],"chainCount":4},{"name":"Arbitrum Bridge","slug":"arbitrum-bridge","category":"Canonical Bridge","tvl":2905909215.391833,"change_1d":2.0467513128755,"change_7d":5.1494660048652605,"logo":"https://icons.llamao.fi/icons/protocols/arbitrum-bridge","url":"https://portal.arbitrum.io/bridge","chains":["Ethereum"],"chainCount":1},{"name":"Tether Gold","slug":"tether-gold","category":"RWA","tvl":2887768739.9020543,"change_1d":0.8916674153576878,"change_7d":0.8902832521526989,"logo":"https://icons.llamao.fi/icons/protocols/tether-gold","url":"https://gold.tether.to/","chains":["Ethereum","Monad","Plasma","Avalanche","Arbitrum","Celo"],"chainCount":8},{"name":"Polygon Bridge","slug":"polygon-bridge","category":"Chain","tvl":2800584939.0315766,"change_1d":-1.32225975496371,"change_7d":-3.4538501974113274,"logo":"https://icons.llamao.fi/icons/protocols/polygon-bridge","url":"https://polygon.technology/","chains":["Ethereum"],"chainCount":1},{"name":"Ondo Yield Assets","slug":"ondo-yield-assets","category":"RWA","tvl":2553177188.2116437,"change_1d":-0.1836843767873404,"change_7d":-0.08190872041222974,"logo":"https://icons.llamao.fi/icons/protocols/ondo-yield-assets","url":"https://ondo.finance","chains":["Ethereum","Stellar","Sei","Ripple","Solana","Mantle"],"chainCount":12},{"name":"KuCoin","slug":"kucoin","category":"CEX","tvl":2443690212.8685813,"change_1d":3.2125792283457315,"change_7d":2.554311993109067,"logo":"https://icons.llamao.fi/icons/protocols/kucoin","url":"https://www.kucoin.com","chains":["Ethereum","Bitcoin","Solana","Tron","Ripple","Binance"],"chainCount":23},{"name":"Base Bridge","slug":"base-bridge","category":"Canonical Bridge","tvl":2379980029.0397506,"change_1d":3.4567887417556307,"change_7d":6.947254533730245,"logo":"https://icons.llamao.fi/icons/protocols/base-bridge","url":"https://docs.base.org/base-chain/network-information/bridges-mainnet","chains":["Ethereum"],"chainCount":1},{"name":"Grove Finance","slug":"grove-finance","category":"Onchain Capital Allocator","tvl":2349365127.576289,"change_1d":-3.4762691340630596,"change_7d":-3.121433229347005,"logo":"https://icons.llamao.fi/icons/protocols/grove-finance","url":"https://data.grove.finance/","chains":["Ethereum","Avalanche","Base","Plume Mainnet"],"chainCount":4},{"name":"Portal","slug":"portal","category":"Bridge","tvl":2345701877.2044425,"change_1d":1.3326195495940993,"change_7d":-6.027245959637881,"logo":"https://icons.llamao.fi/icons/protocols/portal","url":"https://portalbridge.com","chains":["Ethereum","Algorand","Binance","Solana","Sui","Polygon"],"chainCount":24},{"name":"Steakhouse Financial","slug":"steakhouse-financial","category":"Risk Curators","tvl":2342081616.9076557,"change_1d":-0.5806484587565564,"change_7d":2.0434246299024608,"logo":"https://icons.llamao.fi/icons/protocols/steakhouse-financial","url":"https://www.steakhouse.financial/","chains":["Base","Ethereum","Solana","Monad","Katana","Arbitrum"],"chainCount":9},{"name":"Maple","slug":"maple","category":"Lending","tvl":2253408399.9728518,"change_1d":-1.7132525544708983,"change_7d":-0.9181907982037956,"logo":"https://icons.llamao.fi/icons/protocols/maple","url":"https://www.maple.finance","chains":["Ethereum","Solana"],"chainCount":2},{"name":"Crypto-com","slug":"crypto-com","category":"CEX","tvl":2118861547.7150335,"change_1d":3.31857178614581,"change_7d":5.254838585279558,"logo":"https://icons.llamao.fi/icons/protocols/crypto-com","url":"https://crypto.com","chains":["Bitcoin","Ethereum","Polygon","Binance","Avalanche","Arbitrum"],"chainCount":8},{"name":"Sentora","slug":"sentora","category":"Risk Curators","tvl":2106901985.726335,"change_1d":0.5470716324528269,"change_7d":4.119644216398214,"logo":"https://icons.llamao.fi/icons/protocols/sentora","url":"https://sentora.com/","chains":["Ethereum","Ink","Solana","Tempo","Stellar"],"chainCount":5},{"name":"JustCryptos","slug":"justcryptos","category":"Bridge","tvl":2090672172.77,"change_1d":1.9456298998865122,"change_7d":6.019705092898803,"logo":"https://icons.llamao.fi/icons/protocols/justcryptos","url":"https://just.network/token","chains":["Tron"],"chainCount":1},{"name":"Paxos Gold","slug":"paxos-gold","category":"RWA","tvl":1814736018.161004,"change_1d":0.8020593084944778,"change_7d":0.815797095791865,"logo":"https://icons.llamao.fi/icons/protocols/paxos-gold","url":"https://paxos.com/paxgold/","chains":["Ethereum"],"chainCount":1},{"name":"PancakeSwap AMM","slug":"pancakeswap-amm","category":"Dexs","tvl":1684988746.7472847,"change_1d":0.5797754762590301,"change_7d":1.1294068990544304,"logo":"https://icons.llamao.fi/icons/protocols/pancakeswap-amm","url":"https://pancakeswap.finance/","chains":["Binance","Ethereum","Aptos","zkSync Era","Base","Op_Bnb"],"chainCount":11},{"name":"Centrifuge Protocol","slug":"centrifuge-protocol","category":"RWA","tvl":1627264554.6844928,"change_1d":-0.10334738860032644,"change_7d":-0.8268585402646949,"logo":"https://icons.llamao.fi/icons/protocols/centrifuge-protocol","url":"https://centrifuge.io","chains":["Ethereum","Avalanche","Base","Plume Mainnet","Monad","Pharos"],"chainCount":10},{"name":"Spark Liquidity Layer","slug":"spark-liquidity-layer","category":"Onchain Capital Allocator","tvl":1613160198.1032908,"change_1d":0.25276118041475115,"change_7d":0.2528701622103853,"logo":"https://icons.llamao.fi/icons/protocols/spark-liquidity-layer","url":"https://app.spark.fi","chains":["Ethereum","Arbitrum","Base","Optimism","Unichain","Avalanche"],"chainCount":8},{"name":"CCIP","slug":"ccip","category":"Bridge","tvl":1564064358.564985,"change_1d":1.7481055505823804,"change_7d":7.028400061177791,"logo":"https://icons.llamao.fi/icons/protocols/ccip","url":"https://chain.link/cross-chain","chains":["Ethereum","Avalanche","Solana","Base","Arbitrum","Ronin"],"chainCount":21},{"name":"Figure Markets Exchange","slug":"figure-markets-exchange","category":"OTC Marketplace","tvl":1532750189.0373282,"change_1d":0.4207599808492546,"change_7d":2.118926794565155,"logo":"https://icons.llamao.fi/icons/protocols/figure-markets-exchange","url":"https://www.figuremarkets.com/crypto-exchange/","chains":["Provenance"],"chainCount":1}];
+            window.DEFI_TVL_LIMIT = 30;
+            window.DEFI_TVL_EXCLUDED = ["CEX","Chain","Bridge"];
+            window.DEFI_TVL_CHAIN_LOGOS = {"Ethereum":"/assets/svgs/chain/ethereum.svg","Solana":"/assets/svgs/chain/solana.svg","BSC":"/assets/svgs/chain/bnb.svg","Tron":"/assets/svgs/chain/tron.svg","Base":"/assets/svgs/chain/base.svg","Bitcoin":"/assets/svgs/chain/bitcoin.svg","Provenance":"/assets/crypto/provenance.png","Hyperliquid L1":"/assets/svgs/chain/hyperliquid.svg","Arbitrum":"/assets/svgs/chain/arbitrum.svg","Polygon":"/assets/svgs/chain/polygon.svg","Monad":"/assets/crypto/monad.jpg","Plasma":"/assets/crypto/plasma.jpg","Sui":"/assets/svgs/chain/sui.svg","Avalanche":"/assets/svgs/chain/avalanche.svg","OP Mainnet":"/assets/svgs/chain/optimism.svg","Robinhood Chain":"https://icons.llama.fi/robinhood-chain.jpg","Cronos":"/assets/crypto/cronos.png","Stellar":"/assets/crypto/stellar.png","Anubis":"https://icons.llama.fi/anubis.jpg","Starknet":"/assets/crypto/starknet-token.png","Movement":"/assets/crypto/movement.jpg","Ink":"/assets/crypto/ink.png","Aptos":"/assets/crypto/aptos.png","Flare":"/assets/crypto/flare.png","Near":"/assets/crypto/near-protocol.png","Binance":"/assets/svgs/chain/bnb.svg","Ripple":"/assets/svgs/chain/xrp.svg","Doge":"/assets/svgs/chain/dogecoin.svg","Moonbeam":"/assets/crypto/moonbeam.png","Moonriver":"/assets/crypto/moonriver.png","Terra":"/assets/crypto/terra-luna.png","Mantle":"/assets/crypto/mantle.png","Katana":"/assets/crypto/katana.jpg","Stable":"https://icons.llama.fi/stable.jpg","Litecoin":"/assets/svgs/chain/litecoin.svg","Cardano":"/assets/svgs/chain/cardano.svg","EthereumPoW":"/assets/svgs/chain/ethereumpow.svg","xDai":"/assets/crypto/xdai.png","Optimism":"/assets/svgs/chain/optimism.svg","Noble":"https://icons.llama.fi/noble.jpg","Celo":"/assets/crypto/celo.png","Sei":"/assets/crypto/sei.png","Plume Mainnet":"/assets/crypto/plume-mainnet.jpg","Algorand":"/assets/crypto/algorand.png","Tempo":"https://icons.llama.fi/tempo.jpg","zkSync Era":"/assets/svgs/chain/zksync.svg","Op_Bnb":"/assets/svgs/chain/bnb.svg","Pharos":"https://icons.llama.fi/pharos.jpg","Unichain":"https://icons.llama.fi/unichain.jpg","Ronin":"/assets/crypto/ronin.png"};
+        </script>
+            </div>
+
+    <style>
+    .tvl-change-pos { color: #10b981; }
+    .tvl-change-neg { color: #ef4444; }
+    .tvl-chains-row { display: flex; gap: 2px; align-items: center; }
+    .tvl-chain-icon {
+        width: 16px; height: 16px; border-radius: 50%;
+        background: var(--cgt-bg-secondary);
+    }
+    .tvl-protocol-logo {
+        width: 22px; height: 22px; border-radius: 50%;
+        background: var(--cgt-bg-secondary); flex-shrink: 0;
+    }
+    </style>
+        </main>
+
+        <!-- Ad Unit: Footer Banner (CTADS2) -->
+    <div class="container mb-3">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-4936080102497511"
+             data-ad-slot="7634355468"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+    </div>
+    
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer py-3 mt-auto">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                    <small class="d-flex align-items-center justify-content-center justify-content-md-start gap-3 flex-wrap">
+                        <a href="./faq.html" class="text-muted text-decoration-none footer-link">
+                            <img src="./assets/svgs/solid/circle-question.svg" class="fa-icon me-1" width="12" height="12" alt="">FAQ
+                        </a>
+                        <a href="./disclaimer.html" class="text-muted text-decoration-none footer-link">
+                            <img src="./assets/svgs/solid/scale-balanced.svg" class="fa-icon me-1" width="12" height="12" alt="">Disclaimer
+                        </a>
+                        <a href="./donate.html" class="text-muted text-decoration-none footer-link">
+                            <img src="./assets/svgs/solid/heart.svg" class="fa-icon me-1" width="12" height="12" alt="">Donate
+                        </a>
+                        <a href="https://t.me/cryptographytubeofficial" class="text-muted text-decoration-none footer-link" target="_blank" rel="noopener">
+                            <img src="./assets/svgs/brands/telegram.svg" class="fa-icon me-1" width="12" height="12" alt="">Telegram
+                        </a>
+                        <a href="https://t.me/cryptographytube" class="text-muted text-decoration-none footer-link" target="_blank" rel="noopener">
+                            <img src="./assets/svgs/brands/telegram.svg" class="fa-icon me-1" width="12" height="12" alt="">Community
+                        </a>
+                        <a href="https://github.com/Cryptographytube" class="text-muted text-decoration-none footer-link" target="_blank" rel="noopener">
+                            <img src="./assets/svgs/brands/github.svg" class="fa-icon me-1" width="12" height="12" alt="">GitHub
+                        </a>
+                        <a href="https://privatekeys.lol/" class="text-muted text-decoration-none footer-link" target="_blank" rel="noopener">
+                            <img src="./assets/svgs/solid/dice.svg" class="fa-icon me-1" width="12" height="12" alt="">privatekeys.lol
+                        </a>
+                        <a href="https://heliowallet.com/" class="text-muted text-decoration-none footer-link" target="_blank" rel="noopener">
+                            <img src="./assets/svgs/solid/wallet.svg" class="fa-icon me-1" width="12" height="12" alt="">HelioWallet
+                        </a>
+                    </small>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <small class="text-muted">
+                        &copy; 2026 CryptographyTube                        <span class="text-secondary ms-2">ve86e4e57</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========== WALLET SEARCH MODAL ========== -->
+    <div class="modal fade" id="walletSearchModal" tabindex="-1" aria-labelledby="walletSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title ws-modal-title" id="walletSearchModalLabel">
+                        <span class="ws-title-icon"><img src="./assets/svgs/solid/wallet.svg" class="fa-icon " width="16" height="16" alt=""></span>
+                        <span class="ws-title-text">Wallet Search</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-3">
+                    <!-- Input Section -->
+                    <div class="wallet-search-input-section">
+                        <textarea id="walletSearchInput"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Enter private key, mnemonic, or any text (brainwallet)..."
+                                  autocomplete="off"
+                                  spellcheck="false"></textarea>
+                        <div class="form-text d-flex justify-content-between align-items-center mt-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span id="walletSearchInputType" class="text-muted small">Auto-detect: HEX, WIF, Keypair, XRP Secret, Mnemonic, Brainwallet</span>
+                                <a href="#" id="wsViewLink" class="small text-decoration-none" style="display: none;">
+                                    <img src="./assets/svgs/solid/up-right-from-square.svg" class="fa-icon " width="10" height="10" alt=""> <span id="wsViewLinkText">View</span>
+                                </a>
+                            </div>
+                            <span id="walletSearchWordCount" class="small"></span>
+                        </div>
+                        <div id="wsHexSuggestion"></div>
+
+                        <!-- Input Type Selection (shown after detection) -->
+                        <div id="wsInputTypeOptions" class="ws-input-type-options mt-2" style="display: none;">
+                            <span class="ws-type-label">Interpret as</span>
+                            <div class="ws-type-chips">
+                                <input type="radio" class="ws-type-radio" name="wsInputType" id="wsTypeHex" value="hex">
+                                <label class="ws-type-chip" for="wsTypeHex">
+                                    <img src="./assets/svgs/solid/key.svg" class="fa-icon " width="11" height="11" alt="">                                    <span>Private Key (HEX)</span>
+                                </label>
+
+                                <input type="radio" class="ws-type-radio" name="wsInputType" id="wsTypeWif" value="wif">
+                                <label class="ws-type-chip" for="wsTypeWif">
+                                    <img src="./assets/svgs/solid/key.svg" class="fa-icon " width="11" height="11" alt="">                                    <span>WIF Format</span>
+                                </label>
+
+                                <input type="radio" class="ws-type-radio" name="wsInputType" id="wsTypeKeypair" value="keypair">
+                                <label class="ws-type-chip" for="wsTypeKeypair">
+                                    <img src="./assets/svgs/solid/link.svg" class="fa-icon " width="11" height="11" alt="">                                    <span>Keypair</span>
+                                </label>
+
+                                <input type="radio" class="ws-type-radio" name="wsInputType" id="wsTypeXrpSecret" value="xrp-secret">
+                                <label class="ws-type-chip" for="wsTypeXrpSecret">
+                                    <img src="./assets/svgs/solid/lock.svg" class="fa-icon " width="11" height="11" alt="">                                    <span>XRP Secret</span>
+                                </label>
+
+                                <input type="radio" class="ws-type-radio" name="wsInputType" id="wsTypeMnemonic" value="mnemonic">
+                                <label class="ws-type-chip" for="wsTypeMnemonic">
+                                    <img src="./assets/svgs/solid/grip.svg" class="fa-icon " width="11" height="11" alt="">                                    <span>Mnemonic</span>
+                                </label>
+
+                                <input type="radio" class="ws-type-radio" name="wsInputType" id="wsTypeBrainwallet" value="brainwallet">
+                                <label class="ws-type-chip" for="wsTypeBrainwallet">
+                                    <img src="./assets/svgs/solid/brain.svg" class="fa-icon " width="11" height="11" alt="">                                    <span>Brainwallet</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Supported Chains -->
+                        <div class="ws-supported-chains mt-3">
+                            <span class="ws-chains-label">Supported:</span>
+                            <div class="ws-chains-icons">
+                                                                    <span class="ws-chain-icon" title="Bitcoin">
+                                        <img src="./assets/svgs/chain/bitcoin.svg" width="18" height="18" class="crypto-icon " alt="bitcoin">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Ethereum">
+                                        <img src="./assets/svgs/chain/ethereum.svg" width="18" height="18" class="crypto-icon " alt="ethereum">                                    </span>
+                                                                    <span class="ws-chain-icon" title="BNB">
+                                        <img src="./assets/svgs/chain/bnb.svg" width="18" height="18" class="crypto-icon " alt="bnb">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Polygon">
+                                        <img src="./assets/svgs/chain/polygon.svg" width="18" height="18" class="crypto-icon " alt="polygon">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Arbitrum">
+                                        <img src="./assets/svgs/chain/arbitrum.svg" width="18" height="18" class="crypto-icon " alt="arbitrum">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Solana">
+                                        <img src="./assets/svgs/chain/solana.svg" width="18" height="18" class="crypto-icon " alt="solana">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Tron">
+                                        <img src="./assets/svgs/chain/tron.svg" width="18" height="18" class="crypto-icon " alt="tron">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Litecoin">
+                                        <img src="./assets/svgs/chain/litecoin.svg" width="18" height="18" class="crypto-icon " alt="litecoin">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Dogecoin">
+                                        <img src="./assets/svgs/chain/dogecoin.svg" width="18" height="18" class="crypto-icon " alt="dogecoin">                                    </span>
+                                                                    <span class="ws-chain-icon" title="Zcash">
+                                        <img src="./assets/svgs/chain/zcash.svg" width="18" height="18" class="crypto-icon " alt="zcash">                                    </span>
+                                                                <span class="ws-chains-more">+more</span>
+                            </div>
+                        </div>
+
+                        <!-- Search Button -->
+                        <button type="button" class="btn btn-primary-emphasis ws-search-btn mt-3" id="walletSearchBtn2" onclick="WalletSearch.search()">
+                            <img src="./assets/svgs/solid/magnifying-glass.svg" class="fa-icon me-2" width="14" height="14" alt="">                            Search All Chains
+                        </button>
+                    </div>
+
+                    <!-- Optional: Passphrase for Mnemonic -->
+                    <div class="wallet-search-options mt-3" id="walletSearchMnemonicOptions" style="display: none;">
+                        <div class="row g-2">
+                            <div class="col-md-8">
+                                <input type="text" id="walletSearchPassphrase" class="form-control form-control-sm" placeholder="BIP39 passphrase (optional)" autocomplete="off">
+                            </div>
+                            <div class="col-md-4">
+                                <select id="walletSearchAddressCount" class="form-select form-select-sm">
+                                    <option value="1" selected>1 address</option>
+                                    <option value="3">3 addresses</option>
+                                    <option value="5">5 addresses</option>
+                                    <option value="10">10 addresses</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="walletSearchResults" class="wallet-search-results d-none mt-4">
+                        <!-- Results Header -->
+                        <div class="ws-results-header">
+                            <div class="ws-results-title">
+                                <img src="./assets/svgs/solid/wallet.svg" class="fa-icon " width="16" height="16" alt="">                                <span>Derived Addresses</span>
+                                <span class="badge bg-secondary" id="wsInputInfo">-</span>
+                                <span class="ws-activity-status" id="wsActivityStatus"></span>
+                            </div>
+                            <div class="ws-results-actions">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="WalletSearch.copyAll()">
+                                    <img src="./assets/svgs/regular/copy.svg" class="fa-icon " width="12" height="12" alt="">                                    <span>Copy All</span>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="WalletSearch.exportCsv()">
+                                    <img src="./assets/svgs/solid/download.svg" class="fa-icon " width="12" height="12" alt="">                                    <span>CSV</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Activity Summary -->
+                        <div class="ws-activity-summary" id="wsActivitySummary">
+                            <span id="wsActiveChains">0 chains</span>
+                            <span class="ws-sep">•</span>
+                            <span id="wsActiveAddresses">0 addresses</span>
+                        </div>
+
+                        <!-- Chains List (vertical) -->
+                        <div id="walletSearchChainsGrid" class="ws-chains-list">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== LOADING OVERLAY ========== -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="mt-2">Generating...</div>
+        </div>
+    </div>
+
+    <!-- ========== SCRIPTS ========== -->
+    
+    <!-- Page Config (must be first) -->
+    <script>
+        window.CGT_CONFIG = {
+            baseUrl: '',
+            apiBaseUrl: '',
+            apiSocketUrl: '',
+            isProduction: true,
+            jsExt: '.obf.js',
+            version: 'e86e4e57',
+            module: "defi-tvl",
+            action: 'index',
+            chain: null,
+            page: '1',
+            type: null,
+            chainInfo: null,
+            chains: {"bitcoin":{"name":"Bitcoin","symbol":"BTC","logo":"bitcoin","iconType":"brands","iconName":"bitcoin","color":"#f7931a","type":"bitcoin","explorer":"https:\/\/blockchain.com\/btc\/address\/","enabled":true},"ethereum":{"name":"Ethereum","symbol":"ETH","logo":"ethereum","iconType":"brands","iconName":"ethereum","color":"#627eea","type":"evm","explorer":"https:\/\/etherscan.io\/address\/","enabled":true},"bnb":{"name":"BNB Chain","symbol":"BNB","logo":"bnb","iconType":"solid","iconName":"coins","color":"#f3ba2f","type":"evm","explorer":"https:\/\/bscscan.com\/address\/","enabled":true},"arbitrum":{"name":"Arbitrum","symbol":"ETH","logo":"arbitrum","iconType":"solid","iconName":"layer-group","color":"#28a0f0","type":"evm","explorer":"https:\/\/arbiscan.io\/address\/","enabled":true},"optimism":{"name":"Optimism","symbol":"ETH","logo":"optimism-ethereum","iconType":"regular","iconName":"circle","color":"#ff0420","type":"evm","explorer":"https:\/\/optimistic.etherscan.io\/address\/","enabled":true},"base":{"name":"Base","symbol":"ETH","logo":"base","iconType":"solid","iconName":"circle","color":"#0052ff","type":"evm","explorer":"https:\/\/basescan.org\/address\/","enabled":true},"polygon":{"name":"Polygon","symbol":"POL","logo":"polygon","iconType":"solid","iconName":"gem","color":"#8247e5","type":"evm","explorer":"https:\/\/polygonscan.com\/address\/","enabled":true},"avalanche":{"name":"Avalanche","symbol":"AVAX","logo":"avalanche","iconType":"solid","iconName":"mountain","color":"#e84142","type":"evm","explorer":"https:\/\/snowtrace.io\/address\/","enabled":true},"zksync":{"name":"zkSync Era","symbol":"ETH","logo":"zksync","iconType":"solid","iconName":"bolt","color":"#8c8dfc","type":"evm","explorer":"https:\/\/explorer.zksync.io\/address\/","enabled":true},"solana":{"name":"Solana","symbol":"SOL","logo":"solana","iconType":"solid","iconName":"sun","color":"#9945FF","type":"solana","explorer":"https:\/\/solscan.io\/account\/","enabled":true},"tron":{"name":"Tron","symbol":"TRX","logo":"tron","iconType":"solid","iconName":"bolt","color":"#ff0013","type":"tron","explorer":"https:\/\/tronscan.org\/#\/address\/","enabled":true},"ton":{"name":"TON","symbol":"TON","logo":"toncoin","iconType":"solid","iconName":"diamond","color":"#0098ea","type":"ton","explorer":"https:\/\/tonviewer.com\/","enabled":true},"sui":{"name":"Sui","symbol":"SUI","logo":"sui","iconType":"solid","iconName":"water","color":"#6fbcf0","type":"sui","explorer":"https:\/\/suiscan.xyz\/mainnet\/account\/","enabled":true},"xrp":{"name":"XRP","symbol":"XRP","logo":"xrp","iconType":"solid","iconName":"droplet","color":"#23292f","type":"xrp","explorer":"https:\/\/xrpscan.com\/account\/","enabled":true},"litecoin":{"name":"Litecoin","symbol":"LTC","logo":"litecoin","iconType":"solid","iconName":"coins","color":"#345d9d","type":"litecoin","explorer":"https:\/\/blockchair.com\/litecoin\/address\/","enabled":true},"bitcoin-cash":{"name":"Bitcoin Cash","symbol":"BCH","logo":"bitcoin-cash","iconType":"brands","iconName":"bitcoin","color":"#8dc351","type":"bitcoincash","explorer":"https:\/\/blockchair.com\/bitcoin-cash\/address\/","enabled":true},"dogecoin":{"name":"Dogecoin","symbol":"DOGE","logo":"dogecoin","iconType":"solid","iconName":"dog","color":"#c2a633","type":"dogecoin","explorer":"https:\/\/blockchair.com\/dogecoin\/address\/","enabled":true},"zcash":{"name":"Zcash","symbol":"ZEC","logo":"zcash","iconType":"solid","iconName":"shield-halved","color":"#ECB244","type":"zcash","explorer":"https:\/\/blockchair.com\/zcash\/address\/","enabled":true}},
+            needsCrypto: false,
+            useLocalLibs: false,
+                    };
+        // Library URLs for lazy loading (CDN or local based on USE_LOCAL_LIBS)
+        window.CGT_LIBS = {
+            ethers: './assets/libs/ethers.umd.min.js',
+            noble_hashes: 'https://esm.sh/@noble/hashes@1.7.1',
+            noble_curves: 'https://esm.sh/@noble/curves@1.8.1'
+        };
+        // CDN fallback (used if local fails)
+        window.CGT_LIBS_CDN = {
+            ethers: 'https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js',
+            noble_hashes: 'https://esm.sh/@noble/hashes@1.7.1',
+            noble_curves: 'https://esm.sh/@noble/curves@1.8.1'
+        };
+    </script>
+
+    <!-- UI (lightweight Modal & Collapse - replaces Bootstrap JS) -->
+    <script src="./assets/js/ui.obf.js" defer></script>
+
+        <!-- Crypto Loader (lazy load when needed) -->
+    <script src="./assets/js/crypto-loader.obf.js" defer></script>
+    
+    <!-- App Scripts (defer to maintain order) -->
+    <script src="./assets/js/theme.obf.js" defer></script>
+    <script src="./assets/js/balance-checker.obf.js" defer></script>
+    <script src="./assets/js/app.obf.js" defer></script>
+        <script src="./assets/js/defi-tvl.obf.js" defer></script>
+    </body>
+</html>
