@@ -102,6 +102,11 @@ body { overflow: auto !important; }
   height: 100% !important;
   display: block;
 }
+/* Full, monospace labels so complete addresses/TXIDs stay legible in the tree. */
+#body .node text {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 12px;
+}
 
 /* Placeholder shown over the empty canvas before the first analysis */
 #aa-placeholder {
@@ -117,15 +122,43 @@ body { overflow: auto !important; }
 .aa-placeholder-title { font-size: 1.15rem; font-weight: 700; color: var(--cgt-text); margin-bottom: .5rem; }
 .aa-placeholder-text { line-height: 1.6; }
 
-/* ---- Detail panel: sit ABOVE the fixed site navbar (z-index 1030) ---- */
-#panel-overlay { z-index: 1999 !important; }
+/* ---- Detail box: an IN-PAGE card below the tree (not a slide-in panel) ----
+   panel.css makes #tool-panel a fixed, off-screen slide-in. We override it here
+   (loaded last) so it sits in the normal page flow, hidden until a node is
+   clicked (openPanel adds .open). The overlay is not used on this page. */
+#panel-overlay { display: none !important; }
 #tool-panel {
-  z-index: 2000 !important;
+  position: static !important;
+  transform: none !important;
+  inset: auto !important;
+  top: auto !important; right: auto !important; bottom: auto !important; left: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+  overflow: visible !important;
+  display: none;
+  margin-top: 1rem;
   background: var(--cgt-bg-secondary);
   color: var(--cgt-text);
-  border-left: 1px solid var(--cgt-border);
+  border: 1px solid var(--cgt-border);
+  border-radius: 12px;
+  z-index: auto !important;
 }
+#tool-panel.open { display: block; }
+/* Header/body render inline; keep them static (panel.css may make them sticky). */
+#panel-header { position: static !important; }
+#panel-body { overflow: visible !important; height: auto !important; max-height: none !important; }
 #panel-open-tool { background: var(--aa-accent); }
+
+/* ---- Chain selector: all coins shown; only Bitcoin is wired up for now ---- */
+#aa-chain-tabs { margin-bottom: 1rem; }
+#aa-chain-tabs .chain-tab { cursor: pointer; }
+/* Non-Bitcoin coins are visible but not yet analysable (Phase 2). */
+#aa-chain-tabs .chain-tab.aa-soon { opacity: .72; }
+#aa-chain-tabs .chain-tab.aa-soon:hover { opacity: 1; }
 
 /* ---- Detail panel: blockchain field rows ---- */
 #panel-details-section { display: flex; flex-direction: column; gap: .5rem; }

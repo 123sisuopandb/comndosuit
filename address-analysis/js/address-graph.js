@@ -3,10 +3,18 @@
  *
  * Loads AFTER arf.js (the vendored OSINT-Framework d3 tree engine) and shares
  * its global scope. It never touches the tree/zoom/search mechanics — it only:
- *   1. fetches a Bitcoin address's transactions from the Esplora API,
+ *   1. fetches a Bitcoin address's transactions from the blockchain.info API,
  *   2. turns them into a {name, children[]} hierarchy the engine can render,
- *   3. drives clicks (open detail panel + lazy-expand a node's own txs),
- *   4. populates the detail panel with blockchain fields.
+ *   3. drives clicks (open detail box + lazy-expand a node's own txs),
+ *   4. populates the detail box with blockchain fields.
+ *
+ * DATA SOURCE: blockchain.info PRIMARY, blockstream.info (Esplora) FALLBACK.
+ * No mempool.space, no blockchair. blockchain.info's `/address/{addr}?format=json`
+ * endpoint (the caller's proven approach) returns address stats AND transactions
+ * in one CORS-enabled call (`&cors=true`, 100 txs/page via `&offset=`). If it is
+ * unreachable or rate-limiting, we transparently fall back to blockstream.info's
+ * Esplora API and normalise its response into the same tx shape, so the tree
+ * builder never has to know which explorer served the data.
  *
  * Public keys are shown only when revealed on-chain (an address reveals its
  * pubkey the first time it *spends*); otherwise we say "not revealed yet".
@@ -14,12 +22,15 @@
 (function () {
   "use strict";
 
-  // Esplora-compatible hosts. Both send `Access-Control-Allow-Origin: *`, so
-  // they are callable straight from the browser on a static site.
-  var ESPLORA_HOSTS = ["https://blockstream.info/api", "https://mempool.space/api"];
+  // PRIMARY: blockchain.info. `&cors=true` makes it send
+  // `Access-Control-Allow-Origin: *`, so it is callable straight from the
+  // browser. FALLBACK: blockstream.info Esplora (also CORS `*`).
+  var API_BCI = "https://blockchain.info";
+  var API_ESPLORA = "https://blockstream.info/api";
+  var TX_LIMIT = 25;             // newest txs kept per address for the tree
   var MAX_COUNTERPARTIES = 40;   // cap counterparty children per transaction
-  var apiBase = null;            // first host that answered, reused afterwards
-  var txCache = {};              // address -> raw txs array (avoid refetch)
+  var txCache = {};              // address -> normalised txs array (avoid refetch)
+  var lastSource = "";           // which explorer served the most recent fetch
 
   function $(id) { return document.getElementById(id); }
 
@@ -55,133 +66,241 @@
            /^[13][a-km-zA-HJ-NP-Z1-9]{25,39}$/.test(a);
   }
 
-  // ---------- API with transparent host fallback ----------
-  function fetchJson(path) {
-    var hosts = apiBase
-      ? [apiBase].concat(ESPLORA_HOSTS.filter(function (h) { return h !== apiBase; }))
-      : ESPLORA_HOSTS.slice();
-    var idx = 0;
-    function attempt() {
-      if (idx >= hosts.length) return Promise.reject(new Error("all hosts failed"));
-      var host = hosts[idx++];
-      return fetch(host + path, { headers: { "Accept": "application/json" } })
-        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-        .then(function (json) { apiBase = host; return json; })
-        .catch(function () { return attempt(); });
-    }
-    return attempt();
+  // ---------- data fetch: blockchain.info primary, blockstream fallback ----------
+  // Both paths resolve to ONE normalised shape (blockchain.info's native shape):
+  //   { address, n_tx, total_received, total_sent, final_balance,
+  //     txs:[ { hash, result?, fee, time, block_height,
+  //             inputs:[{prev_out:{addr,value,script}, script, witnessItems?}],
+  //             out:[{addr,value}] } ], source }
+  // `result` (net sats for the queried address) is provided by blockchain.info;
+  // for Esplora we omit it and buildTxChildren computes net = sumOut - sumIn.
+  function okJson(r) {
+    if (r.status === 429) throw new Error("rate-limited");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
   }
-  function getAddressStats(addr) { return fetchJson("/address/" + encodeURIComponent(addr)); }
-  function getAddressTxs(addr) { return fetchJson("/address/" + encodeURIComponent(addr) + "/txs"); }
 
-  // ---------- public-key extraction ----------
+  // PRIMARY — the caller's proven approach: /address/{addr}?format=json&offset=N
+  // (100 txs/page, same tx shape as /rawaddr). We take the newest page and keep
+  // the freshest `limit` txs for the tree.
+  function fetchBci(addr, limit) {
+    var url = API_BCI + "/address/" + encodeURIComponent(addr) +
+              "?format=json&offset=0&cors=true";
+    return fetch(url, { headers: { "Accept": "application/json" } })
+      .then(okJson)
+      .then(function (d) {
+        return {
+          address: d.address || addr,
+          n_tx: d.n_tx || (d.txs || []).length,
+          total_received: d.total_received || 0,
+          total_sent: d.total_sent || 0,
+          final_balance: d.final_balance || 0,
+          txs: (d.txs || []).slice(0, limit || TX_LIMIT),
+          source: "blockchain.info"
+        };
+      });
+  }
+
+  // Normalise one Esplora tx into the blockchain.info tx shape.
+  function esploraTxToBci(t) {
+    var st = t.status || {};
+    return {
+      hash: t.txid,
+      // result omitted on purpose -> buildTxChildren computes the net effect.
+      fee: t.fee,
+      size: t.size,
+      time: st.block_time || null,
+      block_height: st.confirmed ? st.block_height : null,
+      inputs: (t.vin || []).map(function (v) {
+        var po = v.prevout || {};
+        return {
+          prev_out: {
+            addr: po.scriptpubkey_address || null,
+            value: po.value || 0,
+            script: po.scriptpubkey || null
+          },
+          script: v.scriptsig || "",
+          // Esplora already delivers the witness as an array of hex items.
+          witnessItems: Array.isArray(v.witness) ? v.witness : null
+        };
+      }),
+      out: (t.vout || []).map(function (o) {
+        return { addr: o.scriptpubkey_address || null, value: o.value || 0 };
+      })
+    };
+  }
+
+  // FALLBACK — blockstream.info Esplora: /address/{addr} for stats +
+  // /address/{addr}/txs for the newest txs, normalised to the shape above.
+  function fetchEsplora(addr, limit) {
+    var base = API_ESPLORA + "/address/" + encodeURIComponent(addr);
+    return Promise.all([
+      fetch(base).then(okJson),
+      fetch(base + "/txs").then(okJson)
+    ]).then(function (res) {
+      var stats = res[0] || {}, rawTxs = res[1] || [];
+      var cs = stats.chain_stats || {}, ms = stats.mempool_stats || {};
+      var funded = (cs.funded_txo_sum || 0) + (ms.funded_txo_sum || 0);
+      var spent = (cs.spent_txo_sum || 0) + (ms.spent_txo_sum || 0);
+      return {
+        address: addr,
+        n_tx: ((cs.tx_count || 0) + (ms.tx_count || 0)) || rawTxs.length,
+        total_received: funded,
+        total_sent: spent,
+        final_balance: funded - spent,
+        txs: rawTxs.slice(0, limit || TX_LIMIT).map(esploraTxToBci),
+        source: "blockstream.info"
+      };
+    });
+  }
+
+  // Try blockchain.info first; on ANY problem fall back to blockstream.info.
+  function fetchAddr(addr, limit) {
+    return fetchBci(addr, limit)
+      .then(function (d) { lastSource = d.source; return d; })
+      .catch(function (e1) {
+        return fetchEsplora(addr, limit)
+          .then(function (d) { lastSource = d.source; return d; })
+          .catch(function (e2) {
+            // Both explorers failed — surface a rate-limit hint if either threw one.
+            if (/rate/.test((e1 && e1.message) || "") ||
+                /rate/.test((e2 && e2.message) || "")) throw new Error("rate-limited");
+            throw e1;
+          });
+      });
+  }
+
+  // ---------- public-key extraction (blockchain.info formats) ----------
   function looksLikePubkey(hex) {
     return /^(02|03)[0-9a-fA-F]{64}$/.test(hex) || /^04[0-9a-fA-F]{128}$/.test(hex);
   }
-  // Given a spending input, return { key, kind } if a public key is revealed.
-  function extractPubkeyFromVin(vin) {
-    if (!vin) return null;
-    // P2WPKH / P2SH-P2WPKH: witness = [signature, compressed-pubkey]
-    if (vin.witness && vin.witness.length) {
-      for (var i = vin.witness.length - 1; i >= 0; i--) {
-        if (looksLikePubkey(vin.witness[i])) return { key: vin.witness[i], kind: "compressed" };
-      }
+  function pubkeyKind(hex) { return /^04/i.test(hex) ? "uncompressed" : "compressed"; }
+
+  // Legacy P2PKH: scriptsig hex ends with a push of the pubkey (0x21<33B> or 0x41<65B>).
+  function pubkeyFromScriptHex(scriptHex) {
+    if (!scriptHex) return null;
+    var m = /21((?:02|03)[0-9a-fA-F]{64})$/.exec(scriptHex) ||
+            /41(04[0-9a-fA-F]{128})$/.exec(scriptHex);
+    return m ? { key: m[1], kind: pubkeyKind(m[1]) } : null;
+  }
+
+  // blockchain.info serialises a segwit witness as one hex string:
+  //   [compactsize item-count][ (compactsize len)(data) ]...
+  function parseWitnessItems(witnessHex) {
+    if (!witnessHex || typeof witnessHex !== "string") return [];
+    var buf = witnessHex.toLowerCase(), pos = 0;
+    function byte() { var b = parseInt(buf.substr(pos, 2), 16); pos += 2; return b; }
+    function varint() {
+      var f = byte();
+      if (isNaN(f)) return -1;
+      if (f < 0xfd) return f;
+      if (f === 0xfd) { var a = byte(), b = byte(); return a + b * 256; }
+      return -1; // 0xfe/0xff — unreasonably large, bail
     }
-    // P2PKH: scriptsig_asm ends with "... OP_PUSHBYTES_33 <pubkey>"
-    if (vin.scriptsig_asm) {
-      var toks = vin.scriptsig_asm.split(/\s+/);
-      for (var j = toks.length - 1; j >= 0; j--) {
-        if (looksLikePubkey(toks[j])) return { key: toks[j], kind: "compressed" };
-      }
+    var count = varint();
+    if (count < 0 || count > 100) return [];
+    var items = [];
+    for (var i = 0; i < count; i++) {
+      var len = varint();
+      if (len < 0 || pos + len * 2 > buf.length) return items;
+      items.push(buf.substr(pos, len * 2));
+      pos += len * 2;
     }
-    // Taproot key-path: x-only output key lives in prevout scriptpubkey (5120<32B>)
-    if (vin.prevout && vin.prevout.scriptpubkey_type === "v1_p2tr" && vin.prevout.scriptpubkey) {
-      var m = /^5120([0-9a-fA-F]{64})$/.exec(vin.prevout.scriptpubkey);
-      if (m) return { key: m[1], kind: "x-only (taproot)" };
+    return items;
+  }
+
+  // Return { key, kind } if this input reveals a public key, else null.
+  function extractPubkey(input) {
+    if (!input) return null;
+    // P2PKH: pubkey pushed at the tail of the scriptsig.
+    var fromScript = pubkeyFromScriptHex(input.script);
+    if (fromScript) return fromScript;
+    // P2WPKH / nested: witness stack's last item is the compressed pubkey.
+    // Esplora gives the witness as an array (witnessItems); blockchain.info gives
+    // it as one serialised hex string that we parse into items.
+    var items = input.witnessItems || parseWitnessItems(input.witness);
+    for (var i = items.length - 1; i >= 0; i--) {
+      if (looksLikePubkey(items[i])) return { key: items[i], kind: pubkeyKind(items[i]) };
+    }
+    // Taproot key-path: x-only key lives in the prevout script (5120<32B>).
+    var po = input.prev_out;
+    if (po && po.script && /^5120[0-9a-fA-F]{64}$/.test(po.script)) {
+      return { key: po.script.slice(4), kind: "x-only (taproot)" };
     }
     return null;
   }
 
   // ---------- hierarchy building ----------
-  function summarizeAddress(stats) {
-    var cs = stats.chain_stats || {}, ms = stats.mempool_stats || {};
-    var funded = (cs.funded_txo_sum || 0) + (ms.funded_txo_sum || 0);
-    var spent = (cs.spent_txo_sum || 0) + (ms.spent_txo_sum || 0);
-    return {
-      funded: funded,
-      spent: spent,
-      balance: funded - spent,
-      txCount: (cs.tx_count || 0) + (ms.tx_count || 0)
-    };
-  }
-
   // Build the transaction child-nodes for a given "context" address.
   function buildTxChildren(addr, txs) {
     return txs.map(function (tx) {
+      var inputs = tx.inputs || [], outs = tx.out || [];
       var sumIn = 0, sumOut = 0;
-      (tx.vin || []).forEach(function (v) {
-        if (v.prevout && v.prevout.scriptpubkey_address === addr) sumIn += v.prevout.value || 0;
+      inputs.forEach(function (v) {
+        if (v.prev_out && v.prev_out.addr === addr) sumIn += v.prev_out.value || 0;
       });
-      (tx.vout || []).forEach(function (o) {
-        if (o.scriptpubkey_address === addr) sumOut += o.value || 0;
+      outs.forEach(function (o) {
+        if (o.addr === addr) sumOut += o.value || 0;
       });
-      var net = sumOut - sumIn;
+      // blockchain.info gives the net effect on the queried address directly.
+      var net = (typeof tx.result === "number") ? tx.result : (sumOut - sumIn);
       var direction = net > 0 ? "received" : (net < 0 ? "sent" : "self");
 
       // The context address's own pubkey is revealed here iff it is a spender.
       var ownPubkey = null;
       if (sumIn > 0) {
-        (tx.vin || []).some(function (v) {
-          if (v.prevout && v.prevout.scriptpubkey_address === addr) {
-            var pk = extractPubkeyFromVin(v);
+        inputs.some(function (v) {
+          if (v.prev_out && v.prev_out.addr === addr) {
+            var pk = extractPubkey(v);
             if (pk) { ownPubkey = pk; return true; }
           }
           return false;
         });
       }
 
-      // Counterparties: senders (if we received) or recipients (if we sent).
+      // Counterparties: recipients (if we sent) or senders (if we received).
       var cps = [], seen = {}, hidden = 0;
       if (direction === "sent") {
-        (tx.vout || []).forEach(function (o) {
-          var a = o.scriptpubkey_address;
+        outs.forEach(function (o) {
+          var a = o.addr;
           if (!a || a === addr) return;               // skip self / change / unparsable
           if (seen[a]) { seen[a].value += o.value || 0; return; }
           var n = makeAddressNode(a, o.value || 0, "recipient", null);
           seen[a] = n; cps.push(n);
         });
       } else {
-        (tx.vin || []).forEach(function (v) {
-          if (!v.prevout) return;
-          var a = v.prevout.scriptpubkey_address;
+        inputs.forEach(function (v) {
+          if (!v.prev_out) return;
+          var a = v.prev_out.addr;
           if (!a || a === addr) return;
-          var pk = extractPubkeyFromVin(v);
+          var pk = extractPubkey(v);
           if (seen[a]) {
-            seen[a].value += v.prevout.value || 0;
+            seen[a].value += v.prev_out.value || 0;
             if (pk && !seen[a].pubkey) seen[a].pubkey = pk;
             return;
           }
-          var n = makeAddressNode(a, v.prevout.value || 0, "sender", pk);
+          var n = makeAddressNode(a, v.prev_out.value || 0, "sender", pk);
           seen[a] = n; cps.push(n);
         });
       }
       if (cps.length > MAX_COUNTERPARTIES) { hidden = cps.length - MAX_COUNTERPARTIES; cps = cps.slice(0, MAX_COUNTERPARTIES); }
 
+      var confirmed = (tx.block_height != null && tx.block_height > 0);
       var sign = direction === "received" ? "+" : direction === "sent" ? "−" : "±";
       var amt = formatBTC(Math.abs(net) || sumIn || sumOut);
       return {
-        name: shorten(tx.txid, 8, 6) + "  " + sign + amt,
-        description: "Transaction " + tx.txid + " — " + direction + " " + sign + amt,
+        name: tx.hash + "   " + sign + amt,
+        description: "Transaction " + tx.hash + " — " + direction + " " + sign + amt,
         free: true,
         kind: "tx",
-        txid: tx.txid,
+        txid: tx.hash,
         direction: direction,
         net: net, sumIn: sumIn, sumOut: sumOut,
         fee: tx.fee,
         size: tx.size,
-        confirmed: !!(tx.status && tx.status.confirmed),
-        blockHeight: tx.status && tx.status.block_height,
-        blockTime: tx.status && tx.status.block_time,
+        confirmed: confirmed,
+        blockHeight: confirmed ? tx.block_height : null,
+        blockTime: tx.time,
         ownPubkey: ownPubkey,
         contextAddress: addr,
         hiddenCount: hidden,
@@ -193,7 +312,7 @@
   function makeAddressNode(addr, value, role, pubkey) {
     var sign = role === "recipient" ? "−" : "+";
     return {
-      name: shorten(addr) + "  " + sign + formatBTC(value),
+      name: addr + "   " + sign + formatBTC(value),
       description: addr + " — click to trace its transactions",
       free: true,
       kind: "address",
@@ -205,27 +324,33 @@
     };
   }
 
-  function buildRoot(addr, stats, txs) {
+  function buildRoot(addr, data) {
+    var txs = data.txs || [];
     // Own pubkey across the loaded txs (revealed when this address is a spender).
     var ownPubkey = null;
     txs.some(function (tx) {
-      return (tx.vin || []).some(function (v) {
-        if (v.prevout && v.prevout.scriptpubkey_address === addr) {
-          var pk = extractPubkeyFromVin(v);
+      return (tx.inputs || []).some(function (v) {
+        if (v.prev_out && v.prev_out.addr === addr) {
+          var pk = extractPubkey(v);
           if (pk) { ownPubkey = pk; return true; }
         }
         return false;
       });
     });
     return {
-      name: shorten(addr, 12, 10),
+      name: addr,
       description: addr,
       free: true,
       kind: "address",
       address: addr,
       isRoot: true,
       pubkey: ownPubkey,
-      stats: summarizeAddress(stats),
+      stats: {
+        funded: data.total_received || 0,
+        spent: data.total_sent || 0,
+        balance: data.final_balance || 0,
+        txCount: data.n_tx || txs.length
+      },
       loadedTxCount: txs.length,
       children: buildTxChildren(addr, txs)
     };
@@ -241,9 +366,19 @@
     return n;
   }
 
+  // Bring the in-page detail card into view when a node is clicked (it sits
+  // below the tree, so on smaller screens it can be off-screen).
+  function scrollToDetail() {
+    var box = $("tool-panel");
+    if (box && box.classList.contains("open") && box.scrollIntoView) {
+      box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }
+
   // ---------- click behaviour ----------
   function handleNodeClick(d) {
     openPanel(d);                                  // always show details
+    scrollToDetail();
     var data = d.data || {};
     if (data.isRoot) return;                       // keep the whole graph visible
 
@@ -286,12 +421,15 @@
     if (txCache[addr]) { graft(txCache[addr]); return; }
     d._loading = true;
     setStatus("Loading transactions for " + shorten(addr) + " …", "loading");
-    getAddressTxs(addr)
-      .then(function (txs) { txs = txs || []; txCache[addr] = txs; graft(txs); })
-      .catch(function () { d._loading = false; setStatus("Couldn't load transactions for that address.", "error"); });
+    fetchAddr(addr, TX_LIMIT)
+      .then(function (data) { var txs = (data && data.txs) || []; txCache[addr] = txs; graft(txs); })
+      .catch(function (e) {
+        d._loading = false;
+        setStatus(/rate/.test(e && e.message) ? "Both explorers are rate-limiting — wait a few seconds and click again." : "Couldn't load transactions for that address.", "error");
+      });
   }
 
-  // ---------- detail-panel content ----------
+  // ---------- detail-box content ----------
   function pill(text, cls) { return '<span class="badge-pill ' + cls + '">' + esc(text) + '</span>'; }
   function mono(text) { return '<span class="aa-mono">' + esc(text) + '</span>'; }
   function copyBtn(text) { return '<button class="aa-copy" type="button" data-copy="' + esc(text) + '" title="Copy">copy</button>'; }
@@ -392,12 +530,12 @@
       wireCopyButtons(det);
     }
 
-    // CTA — open on a block explorer
+    // CTA — open on the blockchain.info explorer
     var ctaSec = $("panel-cta-section"), cta = $("panel-open-tool");
     if (ctaSec && cta) {
       cta.href = isTx
-        ? "https://blockstream.info/tx/" + data.txid
-        : "https://blockstream.info/address/" + data.address;
+        ? "https://www.blockchain.com/explorer/transactions/btc/" + data.txid
+        : "https://www.blockchain.com/explorer/addresses/btc/" + data.address;
       cta.textContent = (isTx ? "View transaction" : "View address") + " on explorer ↗";
       ctaSec.classList.remove("empty");
     }
@@ -432,21 +570,23 @@
     if (btn) btn.disabled = true;
     setStatus("Fetching transactions for " + shorten(addr) + " …", "loading");
 
-    Promise.all([getAddressStats(addr), getAddressTxs(addr)])
-      .then(function (res) {
-        var stats = res[0], txs = res[1] || [];
+    fetchAddr(addr, TX_LIMIT)
+      .then(function (data) {
+        var txs = (data && data.txs) || [];
         txCache[addr] = txs;
-        var rootData = buildRoot(addr, stats, txs);
+        var rootData = buildRoot(addr, data);
         hidePlaceholder();
         showSearch();
         window.renderGraph(rootData);
         setStatus(txs.length
-          ? ("Loaded " + txs.length + " transaction(s)" + (rootData.stats.txCount > txs.length ? " of " + rootData.stats.txCount + " (newest first)" : "") + ". Click a transaction to expand it.")
+          ? ("Loaded " + txs.length + " transaction(s)" + (rootData.stats.txCount > txs.length ? " of " + rootData.stats.txCount + " (newest first)" : "") + " · via " + lastSource + ". Click a transaction to expand it.")
           : "No transactions found for this address.", "");
         try { history.replaceState(null, "", "?address=" + encodeURIComponent(addr)); } catch (e) {}
       })
-      .catch(function () {
-        setStatus("Couldn't reach the blockchain API. Check your connection and try again.", "error");
+      .catch(function (e) {
+        setStatus(/rate/.test(e && e.message)
+          ? "Both explorers are rate-limiting — wait a few seconds and press Analyze again."
+          : "Couldn't reach blockchain.info or blockstream.info. Check your connection and try again.", "error");
       })
       .then(function () { if (btn) btn.disabled = false; });
   }
@@ -469,12 +609,31 @@
     obs.observe(html, { attributes: true, attributeFilter: ["data-bs-theme"] });
   }
 
+  // ---------- chain selector ----------
+  // All coins are shown, but only Bitcoin is analysable in this phase. Clicking
+  // another coin explains that it's coming soon rather than doing nothing.
+  function wireChainTabs() {
+    var tabs = document.querySelectorAll("#aa-chain-tabs .chain-tab");
+    if (!tabs.length) return;
+    tabs.forEach(function (tab) {
+      var chain = tab.getAttribute("data-chain");
+      if (chain !== "bitcoin") tab.classList.add("aa-soon");
+      tab.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (chain === "bitcoin") { var inp = $("address-input"); if (inp) inp.focus(); return; }
+        var name = tab.getAttribute("data-name") || "This chain";
+        setStatus(name + " support is coming soon — Bitcoin address analysis is available now.", "");
+      });
+    });
+  }
+
   function init() {
     var input = $("address-input"), btn = $("analyze-btn");
     if (btn) btn.addEventListener("click", function () { analyze(input ? input.value : ""); });
     if (input) input.addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); analyze(input.value); }
     });
+    wireChainTabs();
     watchTheme();
     // Deep link: ?address=...
     var m = /[?&]address=([^&]+)/.exec(location.search);

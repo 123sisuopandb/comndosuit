@@ -8,7 +8,8 @@ var margin = [20, 120, 20, 140],
     searchMatches = [];
 
 var tree = d3.tree()
-    .size([height, width]);
+    .nodeSize([34, 1])
+    .separation(function(a, b) { return 1; });
 
 var diagonal = d3.linkHorizontal()
     .x(function(d) { return d.y; })
@@ -103,7 +104,7 @@ function renderGraph(json) {
 
   // Run tree layout to get final node positions, then compute zoom from data.
   tree(root);
-  root.descendants().forEach(function(d) { d.y = d.depth * 180; });
+  root.descendants().forEach(function(d) { d.y = d.depth * 720; });
   var visibleNodes = root.descendants();
   var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   visibleNodes.forEach(function(d) {
@@ -132,7 +133,7 @@ function update(source) {
   var links = root.links();
 
   // Normalize for fixed-depth.
-  nodes.forEach(function(d) { d.y = d.depth * 180; });
+  nodes.forEach(function(d) { d.y = d.depth * 720; });
 
   // Update the nodes
   var node = vis.selectAll("g.node")
@@ -169,9 +170,9 @@ function update(source) {
       .attr("target", function(d) { return d.data.url && !d.children && !d._children ? null : "_blank"; })
       .attr('href', function(d) { return d.data.url && !d.children && !d._children ? null : d.data.url; })
       .append("text")
-      .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
+      .attr("x", 16)
       .attr("dy", ".35em")
-      .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+      .attr("text-anchor", "start")
       .style("fill", function(d) {
         return d.data.free ? getCSSVar("--color-text-primary") : getCSSVar("--color-text-secondary");
       })
@@ -200,7 +201,7 @@ function update(source) {
       .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
   nodeUpdate.select("circle")
-      .attr("r", function(d) { return d._highlighted ? 9 : 6; })
+      .attr("r", function(d) { return d._highlighted ? 13 : 9; })
       .style("fill", function(d) {
         if (d._highlighted) return getCSSVar("--color-accent");
         return d._children ? getCSSVar("--color-node-fill-branch") : getCSSVar("--color-node-fill-leaf");

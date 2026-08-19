@@ -14,8 +14,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Primary Meta Tags -->
-    <title>Bitcoin Address Analysis — Transaction Graph Explorer | CryptographyTube</title>
-    <meta name="title" content="Bitcoin Address Analysis - Transaction Graph Explorer">
+    <title>Address Analysis — Transaction Graph Explorer | CryptographyTube</title>
+    <meta name="title" content="Address Analysis - Transaction Graph Explorer">
     <meta name="description" content="Enter any Bitcoin address to explore its on-chain transaction graph as an interactive tree. Trace connected addresses, transaction IDs, amounts and revealed public keys.">
     <meta name="keywords" content="mnemonic seeds, bip39 phrases, seed phrase database, 12 word mnemonic, 24 word seed, seed phrase generator, mnemonic directory, bip44 derivation">
     <meta name="author" content="CryptographyTube">
@@ -32,7 +32,7 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="http://cryptographytube.org/address-analysis">
-    <meta property="og:title" content="Bitcoin Address Analysis - Transaction Graph Explorer">
+    <meta property="og:title" content="Address Analysis - Transaction Graph Explorer">
     <meta property="og:description" content="Enter any Bitcoin address to explore its on-chain transaction graph as an interactive tree. Trace connected addresses, transaction IDs, amounts and revealed public keys.">
     <meta property="og:site_name" content="CryptographyTube">
     <meta property="og:locale" content="en_US">
@@ -44,7 +44,7 @@
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@cryptographytube">
-    <meta name="twitter:title" content="Bitcoin Address Analysis - Transaction Graph Explorer">
+    <meta name="twitter:title" content="Address Analysis - Transaction Graph Explorer">
     <meta name="twitter:description" content="Enter any Bitcoin address to explore its on-chain transaction graph as an interactive tree. Trace connected addresses, transaction IDs, amounts and revealed public keys.">
     <meta name="twitter:image" content="http://cryptographytube.org/assets/png/og-image.png">
 
@@ -198,7 +198,7 @@ header{margin-bottom:1.5rem}
 </style>
 
     <!-- JSON-LD Structured Data -->
-        <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"Bitcoin Address Analysis - Transaction Graph Explorer","description":"Enter any Bitcoin address to explore its on-chain transaction graph as an interactive tree. Trace connected addresses, transaction IDs, amounts and revealed public keys.","url":"http://cryptographytube.org/address-analysis","keywords":["mnemonic seeds","bip39 phrases","seed phrase database","12 word mnemonic","24 word seed","seed phrase generator","mnemonic directory","bip44 derivation"],"license":"https://creativecommons.org/publicdomain/zero/1.0/","isAccessibleForFree":true,"creator":{"@type":"Organization","name":"CryptographyTube","url":"http://cryptographytube.org"}}</script>
+        <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"Address Analysis - Transaction Graph Explorer","description":"Enter any Bitcoin address to explore its on-chain transaction graph as an interactive tree. Trace connected addresses, transaction IDs, amounts and revealed public keys.","url":"http://cryptographytube.org/address-analysis","keywords":["mnemonic seeds","bip39 phrases","seed phrase database","12 word mnemonic","24 word seed","seed phrase generator","mnemonic directory","bip44 derivation"],"license":"https://creativecommons.org/publicdomain/zero/1.0/","isAccessibleForFree":true,"creator":{"@type":"Organization","name":"CryptographyTube","url":"http://cryptographytube.org"}}</script>
         <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"http://cryptographytube.org/"},{"@type":"ListItem","position":2,"name":"Mnemonic Seeds","item":"http://cryptographytube.org/address-analysis"},{"@type":"ListItem","position":3,"name":"Bitcoin"}]}</script>
     
     <!-- Bootstrap CSS (sync load to prevent CLS) -->
@@ -302,11 +302,73 @@ header{margin-bottom:1.5rem}
                 </ol>
             </nav>
 
-            <header class="text-center mb-4">
-                <h1 class="h2 fw-bold"><img src="../assets/svgs/module/address-analysis.svg" class="fa-icon " width="26" height="26" alt=""> Bitcoin Address Analysis</h1>
-                <p class="text-muted">Enter a Bitcoin address to explore its transaction graph &mdash; trace connected addresses, TXIDs, amounts and public keys in an interactive tree.</p>
+            <header class="text-center mb-3">
+                <h1 class="h2 fw-bold"><img src="../assets/svgs/module/address-analysis.svg" class="fa-icon " width="26" height="26" alt=""> Address Analysis</h1>
+                <p class="text-muted">Pick a chain, enter an address, and explore its transaction graph &mdash; trace connected addresses, TXIDs, amounts and public keys in an interactive tree.</p>
             </header>
+        </div>
 
+        <!-- Chain selector (all chains shown; Bitcoin is available now) -->
+        <div class="container">
+            <div class="chain-tabs" id="aa-chain-tabs" role="tablist" aria-label="Blockchain">
+                <a href="#" class="chain-tab active" role="tab" data-chain="bitcoin" data-name="Bitcoin" style="--chain-color: #f7931a;">
+                    <img src="../assets/svgs/chain/bitcoin.svg" width="20" height="20" class="crypto-icon" alt="bitcoin"><span>Bitcoin</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="ethereum" data-name="Ethereum" style="--chain-color: #627eea;">
+                    <img src="../assets/svgs/chain/ethereum.svg" width="20" height="20" class="crypto-icon" alt="ethereum"><span>Ethereum</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="bnb" data-name="BNB Chain" style="--chain-color: #f3ba2f;">
+                    <img src="../assets/svgs/chain/bnb.svg" width="20" height="20" class="crypto-icon" alt="bnb"><span>BNB Chain</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="arbitrum" data-name="Arbitrum" style="--chain-color: #28a0f0;">
+                    <img src="../assets/svgs/chain/arbitrum.svg" width="20" height="20" class="crypto-icon" alt="arbitrum"><span>Arbitrum</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="optimism" data-name="Optimism" style="--chain-color: #ff0420;">
+                    <img src="../assets/svgs/chain/optimism.svg" width="20" height="20" class="crypto-icon" alt="optimism"><span>Optimism</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="base" data-name="Base" style="--chain-color: #0052ff;">
+                    <img src="../assets/svgs/chain/base.svg" width="20" height="20" class="crypto-icon" alt="base"><span>Base</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="polygon" data-name="Polygon" style="--chain-color: #8247e5;">
+                    <img src="../assets/svgs/chain/polygon.svg" width="20" height="20" class="crypto-icon" alt="polygon"><span>Polygon</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="avalanche" data-name="Avalanche" style="--chain-color: #e84142;">
+                    <img src="../assets/svgs/chain/avalanche.svg" width="20" height="20" class="crypto-icon" alt="avalanche"><span>Avalanche</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="zksync" data-name="zkSync Era" style="--chain-color: #8c8dfc;">
+                    <img src="../assets/svgs/chain/zksync.svg" width="20" height="20" class="crypto-icon" alt="zksync"><span>zkSync Era</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="solana" data-name="Solana" style="--chain-color: #9945FF;">
+                    <img src="../assets/svgs/chain/solana.svg" width="20" height="20" class="crypto-icon" alt="solana"><span>Solana</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="tron" data-name="Tron" style="--chain-color: #ff0013;">
+                    <img src="../assets/svgs/chain/tron.svg" width="20" height="20" class="crypto-icon" alt="tron"><span>Tron</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="toncoin" data-name="TON" style="--chain-color: #0098ea;">
+                    <img src="../assets/crypto/toncoin.png" width="20" height="20" class="crypto-icon" alt="toncoin"><span>TON</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="sui" data-name="Sui" style="--chain-color: #6fbcf0;">
+                    <img src="../assets/svgs/chain/sui.svg" width="20" height="20" class="crypto-icon" alt="sui"><span>Sui</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="xrp" data-name="XRP" style="--chain-color: #23292f;">
+                    <img src="../assets/svgs/chain/xrp.svg" width="20" height="20" class="crypto-icon" alt="xrp"><span>XRP</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="litecoin" data-name="Litecoin" style="--chain-color: #345d9d;">
+                    <img src="../assets/svgs/chain/litecoin.svg" width="20" height="20" class="crypto-icon" alt="litecoin"><span>Litecoin</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="bitcoin-cash" data-name="Bitcoin Cash" style="--chain-color: #8dc351;">
+                    <img src="../assets/svgs/chain/bitcoin-cash.svg" width="20" height="20" class="crypto-icon" alt="bitcoin-cash"><span>Bitcoin Cash</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="dogecoin" data-name="Dogecoin" style="--chain-color: #c2a633;">
+                    <img src="../assets/svgs/chain/dogecoin.svg" width="20" height="20" class="crypto-icon" alt="dogecoin"><span>Dogecoin</span>
+                </a>
+                <a href="#" class="chain-tab" role="tab" data-chain="zcash" data-name="Zcash" style="--chain-color: #ECB244;">
+                    <img src="../assets/svgs/chain/zcash.svg" width="20" height="20" class="crypto-icon" alt="zcash"><span>Zcash</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="container">
             <!-- Address input -->
             <div id="aa-controls" class="mb-3">
                 <div id="address-bar">
@@ -336,45 +398,48 @@ header{margin-bottom:1.5rem}
                         <div class="aa-placeholder-text">
                             Enter any Bitcoin address above and press <strong>Analyze</strong>. Its transactions
                             render as an interactive tree &mdash; expand a transaction to reveal the counterparty
-                            addresses, and click any node to see its address, TXID, amount and public key
-                            (shown when it has been revealed on-chain).
+                            addresses, and click any node to see its full address, TXID, amount and public key
+                            (shown when it has been revealed on-chain) in the panel below.
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Node details: an in-page card BELOW the tree (not a slide-in). -->
+            <div id="tool-panel" role="region" aria-label="Node details">
+              <div id="panel-header">
+                <div id="panel-header-text">
+                  <span id="panel-title"></span>
+                  <div id="panel-breadcrumb" class="empty"></div>
+                </div>
+                <button id="panel-close" aria-label="Close details">&#x2715;</button>
+              </div>
+              <div id="panel-body">
+                <div id="panel-badges" class="empty"></div>
+                <div id="panel-description-section" class="empty">
+                  <span class="panel-section-label">Summary</span>
+                  <span id="panel-description"></span>
+                </div>
+                <div id="panel-details-section" class="empty">
+                  <div id="panel-details"></div>
+                </div>
+                <div id="panel-cta-section" class="empty">
+                  <a id="panel-open-tool" href="#" target="_blank" rel="noopener noreferrer">Open in explorer &#8599;</a>
+                </div>
+              </div>
+            </div>
+
             <div class="alert alert-warning mt-4 small">
-                <strong>Read-only explorer.</strong> Transaction data is read live from public Esplora block-explorer
-                APIs (blockstream.info, mempool.space fallback). A public key is shown only once an address has
-                <em>spent</em> on-chain; receive-only addresses show &ldquo;not revealed yet&rdquo;.
+                <strong>Read-only explorer.</strong> Transaction data is read live from public block-explorer
+                APIs (blockchain.info, with blockstream.info as an automatic fallback). A public key is shown
+                only once an address has <em>spent</em> on-chain; receive-only addresses show
+                &ldquo;not revealed yet&rdquo;.
             </div>
         </div>
     </main>
 
-    <!-- Node details panel (slides in from the right) -->
+    <!-- Kept for the engine's overlay reference; hidden on this page. -->
     <div id="panel-overlay"></div>
-    <div id="tool-panel" role="complementary" aria-label="Node details">
-      <div id="panel-header">
-        <div id="panel-header-text">
-          <span id="panel-title"></span>
-          <div id="panel-breadcrumb" class="empty"></div>
-        </div>
-        <button id="panel-close" aria-label="Close panel">&#x2715;</button>
-      </div>
-      <div id="panel-body">
-        <div id="panel-badges" class="empty"></div>
-        <div id="panel-description-section" class="empty">
-          <span class="panel-section-label">Summary</span>
-          <span id="panel-description"></span>
-        </div>
-        <div id="panel-details-section" class="empty">
-          <div id="panel-details"></div>
-        </div>
-        <div id="panel-cta-section" class="empty">
-          <a id="panel-open-tool" href="#" target="_blank" rel="noopener noreferrer">Open in explorer &#8599;</a>
-        </div>
-      </div>
-    </div>
 
 <!-- ========== FOOTER ========== -->
     <footer class="footer py-3 mt-auto">
