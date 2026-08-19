@@ -1,0 +1,181 @@
+/* ============================================================================
+   Bitcoin Address Analysis — tool layer, embedded inside the CryptographyTube
+   site chrome (navbar + footer + Bootstrap theme).
+
+   Load order: bootstrap-purged.min.css → style.min.css → arf.css → panel.css
+   → THIS file (last, so these overrides win).
+
+   The d3 tree engine (arf.js / panel.css) uses its own `--color-*` token
+   namespace, which is distinct from the site's `--cgt-*` tokens. We remap the
+   engine tokens onto the site tokens so the tree follows the site's light/dark
+   theme automatically (the site flips `--cgt-*` via <html data-bs-theme>).
+   ========================================================================== */
+
+:root {
+  --aa-accent: #f7931a;                        /* bitcoin orange for CTAs */
+
+  /* Remap OSINT engine tokens -> CryptographyTube site theme */
+  --color-bg:               var(--cgt-bg);
+  --color-surface:          var(--cgt-bg-secondary);
+  --color-text-primary:     var(--cgt-text);
+  --color-text-secondary:   #6c757d;
+  --color-border:           var(--cgt-border);
+  --color-link:             var(--cgt-border);
+  --color-node-fill-leaf:   var(--cgt-bg-secondary);
+  --color-node-fill-branch: var(--cgt-primary);
+  --color-node-stroke:      var(--cgt-primary);
+  --color-accent:           var(--aa-accent);
+}
+[data-bs-theme="dark"] { --color-text-secondary: #9ca3af; }
+
+/* arf.css sets body{overflow:hidden;margin:0}. Undo that so the site page
+   scrolls normally and keeps the site background/layout. */
+body { overflow: auto !important; }
+
+/* ---- Address input bar ---- */
+#aa-controls { max-width: 760px; margin-left: auto; margin-right: auto; }
+#address-bar {
+  display: flex;
+  gap: .5rem;
+  align-items: stretch;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+#address-input {
+  flex: 1 1 420px;
+  min-width: 0;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+#address-input:focus {
+  border-color: var(--aa-accent);
+  box-shadow: 0 0 0 .2rem rgba(247, 147, 26, 0.25);
+}
+#analyze-btn {
+  flex: 0 0 auto;
+  background: var(--aa-accent);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
+  white-space: nowrap;
+}
+#analyze-btn:hover { background: #e07f00; color: #fff; }
+#analyze-btn:disabled { opacity: .55; }
+
+/* ---- Status line ---- */
+#aa-status {
+  text-align: center;
+  min-height: 20px;
+  margin-top: .5rem;
+  font-size: .875rem;
+  color: var(--cgt-text);
+  opacity: .8;
+}
+#aa-status.error   { color: #dc3545; opacity: 1; }
+#aa-status.loading { color: var(--aa-accent); opacity: 1; }
+
+/* ---- In-tree search / filter (revealed after first analysis) ---- */
+#search-container { max-width: 560px; margin: 0 auto .5rem; position: relative; }
+#search-input { font-size: .9rem; }
+.aa-hidden { display: none !important; }
+
+/* ---- Tree canvas: bounded card inside the page (not full viewport) ---- */
+#aa-graph-wrap {
+  position: relative;
+  margin-top: .5rem;
+}
+#body {
+  position: relative;
+  width: 100%;
+  height: min(72vh, 780px);
+  min-height: 400px;
+  margin: 0;
+  background: var(--cgt-bg-secondary);
+  border: 1px solid var(--cgt-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+/* Engine sets svg{height:calc(100vh-120px)}; here it fills the card. */
+#body svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Placeholder shown over the empty canvas before the first analysis */
+#aa-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  pointer-events: none;
+}
+.aa-placeholder-inner { max-width: 560px; text-align: center; color: #6c757d; }
+.aa-placeholder-title { font-size: 1.15rem; font-weight: 700; color: var(--cgt-text); margin-bottom: .5rem; }
+.aa-placeholder-text { line-height: 1.6; }
+
+/* ---- Detail panel: sit ABOVE the fixed site navbar (z-index 1030) ---- */
+#panel-overlay { z-index: 1999 !important; }
+#tool-panel {
+  z-index: 2000 !important;
+  background: var(--cgt-bg-secondary);
+  color: var(--cgt-text);
+  border-left: 1px solid var(--cgt-border);
+}
+#panel-open-tool { background: var(--aa-accent); }
+
+/* ---- Detail panel: blockchain field rows ---- */
+#panel-details-section { display: flex; flex-direction: column; gap: .5rem; }
+#panel-details-section.empty { display: none; }
+#panel-details { display: flex; flex-direction: column; gap: .75rem; }
+
+.aa-row { display: flex; flex-direction: column; gap: 2px; }
+.aa-row-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.aa-row-value { font-size: 14px; color: var(--cgt-text); line-height: 1.45; }
+.aa-row-value a { color: var(--cgt-primary); text-decoration: none; }
+.aa-row-value a:hover { text-decoration: underline; }
+.aa-mono {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
+.aa-muted { color: #6c757d; font-style: italic; }
+
+/* Copy-to-clipboard button */
+.aa-copy {
+  margin-left: 6px;
+  font-size: 10px;
+  padding: 0 5px;
+  border: 1px solid var(--cgt-border);
+  border-radius: 3px;
+  background: none;
+  color: #6c757d;
+  cursor: pointer;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.aa-copy:hover { color: var(--cgt-text); border-color: #6c757d; }
+
+/* ---- Panel pills for node types ---- */
+.badge-address   { background: #1e90cc; }
+.badge-root      { background: var(--aa-accent); }
+.badge-received  { background: #2d9e2d; }
+.badge-sent      { background: #c84040; }
+.badge-self      { background: #606060; }
+.badge-confirmed { background: #2d9e2d; }
+.badge-pending   { background: #b87800; }
+
+@media (max-width: 768px) {
+  #address-input { flex-basis: 100%; }
+  #analyze-btn { flex: 1 1 100%; }
+  #body { height: 62vh; }
+}
