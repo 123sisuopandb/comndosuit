@@ -63,6 +63,14 @@ function parseName(name) {
   return { cleanName: clean, badges: badges };
 }
 
+// A node whose children are currently visible draws its label on the LEFT of
+// its circle (same as the root). That keeps the links fanning out to those
+// children clear of the node's own long txid/address label, instead of the line
+// running straight through it. Collapsed / leaf nodes keep the label on the right.
+function labelSide(d) {
+  return (d.data.isRoot || (d.children && d.children.length)) ? "left" : "right";
+}
+
 // Render (or re-render) the whole tree from a hierarchy data object.
 // Called by the Address Analysis controller (address-graph.js) once a
 // Bitcoin address has been fetched and turned into a {name, children[]} tree.
@@ -114,10 +122,11 @@ function renderGraph(json) {
     if (d.y > maxY) maxY = d.y;
   });
   var pad = 40;
+  var rootLabelPad = 200;   // reserve room for the root address drawn LEFT of its circle
   var bw = (maxY - minY) || 1;
   var bh = (maxX - minX) || 1;
-  var k = Math.min((svgW - pad * 2) / bw, (svgH - pad * 2) / bh, 3);
-  var tx = pad - minY * k;
+  var k = Math.min((svgW - pad * 2 - rootLabelPad) / bw, (svgH - pad * 2) / bh, 3);
+  var tx = pad + rootLabelPad - minY * k;
   var cy = (minX + maxX) / 2;
   var ty = svgH / 2 - margin[0] - cy * k;
   svgEl.call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(k));
@@ -170,9 +179,11 @@ function update(source) {
       .attr("target", function(d) { return d.data.url && !d.children && !d._children ? null : "_blank"; })
       .attr('href', function(d) { return d.data.url && !d.children && !d._children ? null : d.data.url; })
       .append("text")
-      .attr("x", 16)
+      // Label sits BEFORE (left of) the circle for nodes that have visible
+      // children, so outgoing links don't cross it; leaf nodes keep it after.
+      .attr("x", function(d) { return labelSide(d) === "left" ? -16 : 16; })
       .attr("dy", ".35em")
-      .attr("text-anchor", "start")
+      .attr("text-anchor", function(d) { return labelSide(d) === "left" ? "end" : "start"; })
       .style("fill", function(d) {
         return d.data.free ? getCSSVar("--color-text-primary") : getCSSVar("--color-text-secondary");
       })
@@ -188,6 +199,17 @@ function update(source) {
             .style("fill", getCSSVar("--badge-" + b))
             .text("(" + b + ")");
         });
+        // Direction dot right after the "… BTC" amount: green = received/in,
+        // red = sent/out, grey = self-transfer. (Root carries no dir → no dot.)
+        if (d.data.dir) {
+          var dirColor = d.data.dir === "in" ? "#2d9e2d"
+                       : d.data.dir === "out" ? "#c84040" : "#606060";
+          el.append("tspan")
+            .attr("dx", "6")
+            .style("font-size", "13px")
+            .style("fill", dirColor)
+            .text("●");
+        }
       });
 
   nodeEnter.append("title")
@@ -196,7 +218,16 @@ function update(source) {
     });
 
   // Transition nodes to their new position.
-  var nodeUpdate = node.merge(nodeEnter).transition()
+  var nodeMerge = node.merge(nodeEnter);
+
+  // Re-evaluate which side each label sits on every update: a node that just
+  // gained visible children flips its label to the LEFT (so its outgoing links
+  // exit into empty space); one that collapsed flips back to the right.
+  nodeMerge.select("text")
+      .attr("x", function(d) { return labelSide(d) === "left" ? -16 : 16; })
+      .attr("text-anchor", function(d) { return labelSide(d) === "left" ? "end" : "start"; });
+
+  var nodeUpdate = nodeMerge.transition()
       .duration(duration)
       .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 

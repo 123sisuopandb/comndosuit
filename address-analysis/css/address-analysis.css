@@ -32,36 +32,11 @@
    scrolls normally and keeps the site background/layout. */
 body { overflow: auto !important; }
 
-/* ---- Address input bar ---- */
+/* ---- Address / TXID search bar ----
+   Markup reuses the site-wide `.search-bar` + `.balance-summary` components
+   (defined in style.min.css), so it matches the private-keys look automatically.
+   We only center the block and keep it from stretching too wide on desktop. */
 #aa-controls { max-width: 760px; margin-left: auto; margin-right: auto; }
-#address-bar {
-  display: flex;
-  gap: .5rem;
-  align-items: stretch;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-#address-input {
-  flex: 1 1 420px;
-  min-width: 0;
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-}
-#address-input:focus {
-  border-color: var(--aa-accent);
-  box-shadow: 0 0 0 .2rem rgba(247, 147, 26, 0.25);
-}
-#analyze-btn {
-  flex: 0 0 auto;
-  background: var(--aa-accent);
-  color: #fff;
-  border: none;
-  font-weight: 600;
-  padding-left: 1.75rem;
-  padding-right: 1.75rem;
-  white-space: nowrap;
-}
-#analyze-btn:hover { background: #e07f00; color: #fff; }
-#analyze-btn:disabled { opacity: .55; }
 
 /* ---- Status line ---- */
 #aa-status {
@@ -106,6 +81,42 @@ body { overflow: auto !important; }
 #body .node text {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 12px;
+}
+
+/* ---- Pinned flow box ----
+   A compact yellow box pinned to the top of the graph. It shows the selected
+   node's full address/TXID and the root→…→node path, so clicking a node never
+   requires scrolling down to the detail card. pointer-events:none lets clicks
+   pass THROUGH to the nodes behind it; only the copy button opts back in. */
+#aa-flowbox {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 5;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 8px 12px;
+  background: #fff3cd;
+  color: #4d3800;
+  border: 1px solid var(--aa-accent);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+  pointer-events: none;
+}
+[data-bs-theme="dark"] #aa-flowbox {
+  background: #3a2e05;
+  color: #ffe08a;
+}
+.aa-flow-kind { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+.aa-flow-amt { font-weight: 400; opacity: .85; }
+.aa-flow-id { font-size: 12px; word-break: break-all; line-height: 1.4; }
+.aa-flow-path { margin-top: 3px; font-size: 11px; opacity: .85; word-break: break-all; }
+#aa-flowbox .aa-copy {
+  pointer-events: auto;               /* stays clickable inside the click-through box */
+  color: inherit;
+  border-color: currentColor;
+  opacity: .85;
 }
 
 /* Placeholder shown over the empty canvas before the first analysis */
@@ -208,7 +219,5 @@ body { overflow: auto !important; }
 .badge-pending   { background: #b87800; }
 
 @media (max-width: 768px) {
-  #address-input { flex-basis: 100%; }
-  #analyze-btn { flex: 1 1 100%; }
   #body { height: 62vh; }
 }

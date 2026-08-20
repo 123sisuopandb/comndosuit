@@ -66,6 +66,12 @@
            /^[13][a-km-zA-HJ-NP-Z1-9]{25,39}$/.test(a);
   }
 
+  // A transaction ID is exactly 64 hex characters. No Bitcoin address is 64 hex,
+  // so this is unambiguous and lets the single input box accept an address OR a TXID.
+  function isProbablyTxid(s) {
+    return /^[0-9a-fA-F]{64}$/.test((s || "").trim());
+  }
+
   // ---------- data fetch: blockchain.info primary, blockstream fallback ----------
   // Both paths resolve to ONE normalised shape (blockchain.info's native shape):
   //   { address, n_tx, total_received, total_sent, final_balance,
@@ -163,6 +169,35 @@
           .then(function (d) { lastSource = d.source; return d; })
           .catch(function (e2) {
             // Both explorers failed — surface a rate-limit hint if either threw one.
+            if (/rate/.test((e1 && e1.message) || "") ||
+                /rate/.test((e2 && e2.message) || "")) throw new Error("rate-limited");
+            throw e1;
+          });
+      });
+  }
+
+  // ---------- single-transaction fetch (for TXID input) ----------
+  // Both explorers resolve to the SAME normalised tx shape buildTxChildren /
+  // buildTxRoot already understand (blockchain.info's native /rawtx shape).
+  function fetchTxBci(txid) {
+    var url = API_BCI + "/rawtx/" + encodeURIComponent(txid) + "?cors=true";
+    return fetch(url, { headers: { "Accept": "application/json" } })
+      .then(okJson)
+      .then(function (t) { t.source = "blockchain.info"; return t; });
+  }
+  function fetchTxEsplora(txid) {
+    return fetch(API_ESPLORA + "/tx/" + encodeURIComponent(txid))
+      .then(okJson)
+      .then(function (t) { var n = esploraTxToBci(t); n.source = "blockstream.info"; return n; });
+  }
+  // Try blockchain.info first; on ANY problem fall back to blockstream.info.
+  function fetchTx(txid) {
+    return fetchTxBci(txid)
+      .then(function (t) { lastSource = "blockchain.info"; return t; })
+      .catch(function (e1) {
+        return fetchTxEsplora(txid)
+          .then(function (t) { lastSource = "blockstream.info"; return t; })
+          .catch(function (e2) {
             if (/rate/.test((e1 && e1.message) || "") ||
                 /rate/.test((e2 && e2.message) || "")) throw new Error("rate-limited");
             throw e1;
@@ -295,6 +330,7 @@
         kind: "tx",
         txid: tx.hash,
         direction: direction,
+        dir: direction === "received" ? "in" : direction === "sent" ? "out" : "self",
         net: net, sumIn: sumIn, sumOut: sumOut,
         fee: tx.fee,
         size: tx.size,
@@ -319,6 +355,7 @@
       address: addr,
       value: value,
       role: role,
+      dir: role === "recipient" ? "out" : "in",   // out = money left root, in = money came in
       pubkey: pubkey || null,
       children: null              // lazily loaded on click
     };
@@ -356,6 +393,59 @@
     };
   }
 
+  // Build a ROOT node for a single transaction (when the user enters a TXID
+  // instead of an address). Its children are every counterparty of the tx:
+  // the sender addresses (inputs) first, then the recipient addresses (outputs).
+  // Each child is a normal lazily-expandable address node, so the graph then
+  // behaves exactly like an address analysis one level down.
+  function buildTxRoot(tx) {
+    var inputs = tx.inputs || [], outs = tx.out || [];
+    var sumIn = 0, sumOut = 0;
+    inputs.forEach(function (v) { if (v.prev_out) sumIn += v.prev_out.value || 0; });
+    outs.forEach(function (o) { sumOut += o.value || 0; });
+    var confirmed = (tx.block_height != null && tx.block_height > 0);
+
+    var kids = [], hidden = 0;
+    var seenIn = {};
+    inputs.forEach(function (v) {
+      if (!v.prev_out) return;
+      var a = v.prev_out.addr; if (!a) return;              // coinbase / unparsable
+      var pk = extractPubkey(v);
+      if (seenIn[a]) {
+        seenIn[a].value += v.prev_out.value || 0;
+        if (pk && !seenIn[a].pubkey) seenIn[a].pubkey = pk;
+        return;
+      }
+      var n = makeAddressNode(a, v.prev_out.value || 0, "sender", pk);
+      seenIn[a] = n; kids.push(n);
+    });
+    var seenOut = {};
+    outs.forEach(function (o) {
+      var a = o.addr; if (!a) return;
+      if (seenOut[a]) { seenOut[a].value += o.value || 0; return; }
+      var n = makeAddressNode(a, o.value || 0, "recipient", null);
+      seenOut[a] = n; kids.push(n);
+    });
+    if (kids.length > MAX_COUNTERPARTIES) { hidden = kids.length - MAX_COUNTERPARTIES; kids = kids.slice(0, MAX_COUNTERPARTIES); }
+
+    return {
+      name: tx.hash,
+      description: "Transaction " + tx.hash,
+      free: true,
+      kind: "tx",
+      isRoot: true,
+      txid: tx.hash,
+      sumIn: sumIn, sumOut: sumOut,
+      fee: tx.fee,
+      size: tx.size,
+      confirmed: confirmed,
+      blockHeight: confirmed ? tx.block_height : null,
+      blockTime: tx.time,
+      hiddenCount: hidden,
+      children: kids
+    };
+  }
+
   // ---------- d3 node surgery for lazy expansion ----------
   // Build a real d3 hierarchy subtree from plain data and graft it under `parent`.
   function makeSubtree(data, parent) {
@@ -366,19 +456,9 @@
     return n;
   }
 
-  // Bring the in-page detail card into view when a node is clicked (it sits
-  // below the tree, so on smaller screens it can be off-screen).
-  function scrollToDetail() {
-    var box = $("tool-panel");
-    if (box && box.classList.contains("open") && box.scrollIntoView) {
-      box.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  }
-
   // ---------- click behaviour ----------
   function handleNodeClick(d) {
-    openPanel(d);                                  // always show details
-    scrollToDetail();
+    openPanel(d);                                  // show details + fill the flow box
     var data = d.data || {};
     if (data.isRoot) return;                       // keep the whole graph visible
 
@@ -387,9 +467,11 @@
       lazyExpand(d);
       return;
     }
-    // Otherwise just expand/collapse like the reference tree.
+    // Expand/collapse IN PLACE — no page scroll, no viewport auto-pan — so a
+    // click keeps the graph exactly where it is (the pinned flow box gives the
+    // feedback that used to require scrolling down to the detail card).
     if (d.children) { toggle(d); update(d); return; }
-    if (d._children) { toggle(d); update(d); zoomToNode(d); return; }
+    if (d._children) { toggle(d); update(d); return; }
   }
 
   function lazyExpand(d) {
@@ -415,7 +497,6 @@
       }
       setStatus(kids.length ? "" : ("No further transactions for " + shorten(addr) + "."), "");
       update(d);
-      zoomToNode(d);
     }
 
     if (txCache[addr]) { graft(txCache[addr]); return; }
@@ -443,12 +524,55 @@
     return row(label, '<span class="aa-muted">' + esc(emptyText) + '</span>');
   }
 
+  // ---------- pinned flow box ----------
+  // A compact yellow box pinned inside the graph. It shows the clicked node's
+  // FULL address/txid plus the root→…→node path ("kahan se kahan"), so the user
+  // sees the flow instantly without ever scrolling down to the detail card.
+  function updateFlowBox(d) {
+    var box = $("aa-flowbox");
+    if (!box) return;
+    var data = d.data || {};
+    var isTx = data.kind === "tx";
+    var kind = isTx ? (data.isRoot ? "Root transaction" : "Transaction")
+                    : (data.isRoot ? "Root address" : "Address");
+    var id = isTx ? data.txid : data.address;
+
+    // Amount / direction line.
+    var flow = "";
+    if (isTx && data.isRoot) {
+      flow = "total out " + formatBTC(data.sumOut) + (data.fee != null ? "  ·  fee " + formatBTC(data.fee) : "");
+    } else if (isTx) {
+      var sign = data.direction === "received" ? "+" : data.direction === "sent" ? "−" : "±";
+      flow = data.direction + "  " + sign + formatBTC(Math.abs(data.net));
+    } else if (data.isRoot && data.stats) {
+      flow = "balance " + formatBTC(data.stats.balance);
+    } else if (data.value != null) {
+      flow = (data.role === "recipient" ? "received " : "sent ") + formatBTC(data.value);
+    }
+
+    // Path from the root down to this node — the "from → to" flow.
+    var path = d.ancestors().reverse().map(function (a) {
+      var ad = a.data || {};
+      return esc(ad.kind === "tx" ? ("tx " + shorten(ad.txid, 6, 4)) : shorten(ad.address || ad.name, 8, 6));
+    }).join(" → ");
+
+    box.innerHTML =
+      '<div class="aa-flow-kind">' + esc(kind) +
+        (flow ? ' <span class="aa-flow-amt">· ' + esc(flow) + '</span>' : '') + '</div>' +
+      '<div class="aa-flow-id aa-mono">' + esc(id || "") + copyBtn(id || "") + '</div>' +
+      (path ? '<div class="aa-flow-path">' + path + '</div>' : '');
+    box.classList.remove("aa-hidden");
+    wireCopyButtons(box);
+  }
+
   function renderPanelContent(d) {
+    updateFlowBox(d);                              // keep the pinned flow box in sync
     var data = d.data || {};
     var isTx = data.kind === "tx";
 
     var titleEl = $("panel-title");
-    if (titleEl) titleEl.textContent = isTx ? "Transaction" : (data.isRoot ? "Address (root)" : "Address");
+    if (titleEl) titleEl.textContent = isTx ? (data.isRoot ? "Transaction (root)" : "Transaction")
+                                            : (data.isRoot ? "Address (root)" : "Address");
 
     // Breadcrumb — ancestor path (skip the node itself)
     var bc = $("panel-breadcrumb");
@@ -466,8 +590,12 @@
     if (badges) {
       var b = "";
       if (isTx) {
-        b += pill(data.direction === "received" ? "Received" : data.direction === "sent" ? "Sent" : "Self-transfer",
-                  "badge-" + data.direction);
+        if (data.isRoot) {
+          b += pill("Transaction", "badge-root");
+        } else {
+          b += pill(data.direction === "received" ? "Received" : data.direction === "sent" ? "Sent" : "Self-transfer",
+                    "badge-" + data.direction);
+        }
         b += " " + pill(data.confirmed ? "Confirmed" : "Pending", data.confirmed ? "badge-confirmed" : "badge-pending");
       } else if (data.isRoot) {
         b += pill("Root address", "badge-root");
@@ -483,8 +611,12 @@
     if (descSec && desc) {
       var s = "";
       if (isTx) {
-        var sign = data.direction === "received" ? "+" : data.direction === "sent" ? "−" : "±";
-        s = sign + formatBTC(Math.abs(data.net)) + (data.fee != null ? "   ·   fee " + formatBTC(data.fee) : "");
+        if (data.isRoot) {
+          s = "Total out " + formatBTC(data.sumOut) + (data.fee != null ? "   ·   fee " + formatBTC(data.fee) : "");
+        } else {
+          var sign = data.direction === "received" ? "+" : data.direction === "sent" ? "−" : "±";
+          s = sign + formatBTC(Math.abs(data.net)) + (data.fee != null ? "   ·   fee " + formatBTC(data.fee) : "");
+        }
       } else if (data.isRoot && data.stats) {
         s = "Balance " + formatBTC(data.stats.balance) + "   ·   " + data.stats.txCount + " transaction(s)";
       } else if (data.value != null) {
@@ -500,15 +632,15 @@
       var rows = [];
       if (isTx) {
         rows.push(row("TXID", mono(data.txid) + copyBtn(data.txid)));
-        rows.push(row("Direction", esc(data.direction)));
-        if (data.sumIn) rows.push(row("Spent from this address", formatBTC(data.sumIn)));
-        if (data.sumOut) rows.push(row("Received by this address", formatBTC(data.sumOut)));
+        if (data.direction && !data.isRoot) rows.push(row("Direction", esc(data.direction)));
+        if (data.sumIn) rows.push(row(data.isRoot ? "Total inputs" : "Spent from this address", formatBTC(data.sumIn)));
+        if (data.sumOut) rows.push(row(data.isRoot ? "Total outputs" : "Received by this address", formatBTC(data.sumOut)));
         if (data.fee != null) rows.push(row("Fee", formatBTC(data.fee)));
         rows.push(row("Status", data.confirmed
           ? ("Confirmed" + (data.blockHeight ? " · block " + data.blockHeight : ""))
           : "Pending (in mempool)"));
         if (data.blockTime) rows.push(row("Time", new Date(data.blockTime * 1000).toUTCString()));
-        rows.push(pkRow("Public key of spender", data.ownPubkey, "Not revealed in this transaction"));
+        if (!data.isRoot) rows.push(pkRow("Public key of spender", data.ownPubkey, "Not revealed in this transaction"));
       } else {
         rows.push(row("Address", mono(data.address) + copyBtn(data.address)));
         if (data.isRoot && data.stats) {
@@ -560,12 +692,33 @@
   function hidePlaceholder() { var p = $("aa-placeholder"); if (p) p.classList.add("aa-hidden"); }
   function showSearch() { var s = $("search-container"); if (s) s.classList.remove("aa-hidden"); }
 
-  function analyze(addr) {
-    addr = (addr || "").trim();
-    if (!isProbablyBtcAddress(addr)) {
-      setStatus("That doesn't look like a Bitcoin address. Please check and try again.", "error");
-      return;
-    }
+  // Populate the three summary stat cards. Labels adapt to what was analysed:
+  // an address shows Balance / Received / TX; a transaction shows Out / In / Fee.
+  function setStat(labelId, valueId, label, value) {
+    var l = $(labelId), v = $(valueId);
+    if (l) l.textContent = label;
+    if (v) v.textContent = value;
+  }
+  function statsForAddress(stats) {
+    setStat("aa-stat-l1", "aa-stat-v1", "Balance",  formatBTC(stats.balance));
+    setStat("aa-stat-l2", "aa-stat-v2", "Received", formatBTC(stats.funded));
+    setStat("aa-stat-l3", "aa-stat-v3", "TX",       String(stats.txCount));
+  }
+  function statsForTx(root) {
+    setStat("aa-stat-l1", "aa-stat-v1", "Total Out", formatBTC(root.sumOut));
+    setStat("aa-stat-l2", "aa-stat-v2", "Total In",  formatBTC(root.sumIn));
+    setStat("aa-stat-l3", "aa-stat-v3", "Fee",       root.fee != null ? formatBTC(root.fee) : "—");
+  }
+
+  // Route the single input box: 64-hex → transaction analysis, else → address.
+  function analyze(input) {
+    input = (input || "").trim();
+    if (isProbablyTxid(input)) { analyzeTx(input); return; }
+    if (isProbablyBtcAddress(input)) { analyzeAddress(input); return; }
+    setStatus("That doesn't look like a Bitcoin address or a transaction ID. Please check and try again.", "error");
+  }
+
+  function analyzeAddress(addr) {
     var btn = $("analyze-btn");
     if (btn) btn.disabled = true;
     setStatus("Fetching transactions for " + shorten(addr) + " …", "loading");
@@ -578,6 +731,8 @@
         hidePlaceholder();
         showSearch();
         window.renderGraph(rootData);
+        if (window.root) updateFlowBox(window.root);   // seed the pinned box with the root
+        statsForAddress(rootData.stats);
         setStatus(txs.length
           ? ("Loaded " + txs.length + " transaction(s)" + (rootData.stats.txCount > txs.length ? " of " + rootData.stats.txCount + " (newest first)" : "") + " · via " + lastSource + ". Click a transaction to expand it.")
           : "No transactions found for this address.", "");
@@ -587,6 +742,34 @@
         setStatus(/rate/.test(e && e.message)
           ? "Both explorers are rate-limiting — wait a few seconds and press Analyze again."
           : "Couldn't reach blockchain.info or blockstream.info. Check your connection and try again.", "error");
+      })
+      .then(function () { if (btn) btn.disabled = false; });
+  }
+
+  function analyzeTx(txid) {
+    txid = txid.toLowerCase();
+    var btn = $("analyze-btn");
+    if (btn) btn.disabled = true;
+    setStatus("Fetching transaction " + shorten(txid) + " …", "loading");
+
+    fetchTx(txid)
+      .then(function (tx) {
+        var rootData = buildTxRoot(tx);
+        hidePlaceholder();
+        showSearch();
+        window.renderGraph(rootData);
+        if (window.root) updateFlowBox(window.root);   // seed the pinned box with the root
+        statsForTx(rootData);
+        var parties = (rootData.children || []).length + (rootData.hiddenCount || 0);
+        setStatus("Loaded transaction " + shorten(txid) + " · " + parties + " counterparty address(es)" +
+                  (rootData.hiddenCount ? " (showing " + rootData.children.length + ")" : "") +
+                  " · via " + lastSource + ". Click an address to trace its transactions.", "");
+        try { history.replaceState(null, "", "?txid=" + encodeURIComponent(txid)); } catch (e) {}
+      })
+      .catch(function (e) {
+        setStatus(/rate/.test(e && e.message)
+          ? "Both explorers are rate-limiting — wait a few seconds and press Analyze again."
+          : "Couldn't find that transaction. Check the TXID and try again.", "error");
       })
       .then(function () { if (btn) btn.disabled = false; });
   }
@@ -635,9 +818,9 @@
     });
     wireChainTabs();
     watchTheme();
-    // Deep link: ?address=...
-    var m = /[?&]address=([^&]+)/.exec(location.search);
-    if (m && input) { input.value = decodeURIComponent(m[1]); analyze(input.value); }
+    // Deep link: ?address=... or ?txid=... (analyze() auto-detects the type).
+    var q = /[?&]txid=([^&]+)/.exec(location.search) || /[?&]address=([^&]+)/.exec(location.search);
+    if (q && input) { input.value = decodeURIComponent(q[1]); analyze(input.value); }
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

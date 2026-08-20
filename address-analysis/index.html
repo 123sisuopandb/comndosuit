@@ -304,7 +304,7 @@ header{margin-bottom:1.5rem}
 
             <header class="text-center mb-3">
                 <h1 class="h2 fw-bold"><img src="../assets/svgs/module/address-analysis.svg" class="fa-icon " width="26" height="26" alt=""> Address Analysis</h1>
-                <p class="text-muted">Pick a chain, enter an address, and explore its transaction graph &mdash; trace connected addresses, TXIDs, amounts and public keys in an interactive tree.</p>
+                <p class="text-muted">Pick a chain, enter an address or transaction ID, and explore its transaction graph &mdash; trace connected addresses, TXIDs, amounts and public keys in an interactive tree.</p>
             </header>
         </div>
 
@@ -369,15 +369,42 @@ header{margin-bottom:1.5rem}
         </div>
 
         <div class="container">
-            <!-- Address input -->
+            <!-- Address / TXID input — reuses the site-wide .search-bar component -->
             <div id="aa-controls" class="mb-3">
-                <div id="address-bar">
-                    <input type="text" id="address-input" class="form-control"
-                           placeholder="Enter a Bitcoin address (bc1&hellip;, 1&hellip;, 3&hellip;)"
-                           autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
-                           aria-label="Bitcoin address">
-                    <button id="analyze-btn" type="button" class="btn">Analyze</button>
+                <div class="search-bar">
+                    <div class="search-bar-icon">
+                        <img src="../assets/svgs/chain/bitcoin.svg" width="20" height="20" class="crypto-icon" alt="bitcoin">
+                    </div>
+                    <div class="search-bar-main">
+                        <div class="search-bar-input-row">
+                            <input type="text" id="address-input" class="form-control form-control-sm"
+                                   placeholder="Bitcoin address (bc1&hellip;, 1&hellip;, 3&hellip;) or transaction ID (TXID)"
+                                   autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+                                   aria-label="Bitcoin address or transaction ID">
+                            <button id="analyze-btn" type="button" class="btn btn-primary btn-sm">
+                                <svg class="icon" width="20" height="20"><use href="../assets/svgs/icons.svg#icon-search"></use></svg> Analyze
+                            </button>
+                        </div>
+                        <div class="search-bar-hint">Supports any Bitcoin address (bc1&hellip;, 1&hellip;, 3&hellip;) or a 64-character transaction ID (TXID).</div>
+                    </div>
                 </div>
+
+                <!-- Balance / activity summary (populated after analysis) -->
+                <div class="balance-summary cols-3" id="aa-balance-summary">
+                    <div class="stat-card">
+                        <span class="stat-label" id="aa-stat-l1">Balance</span>
+                        <span class="stat-value" id="aa-stat-v1">0 BTC</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label" id="aa-stat-l2">Received</span>
+                        <span class="stat-value" id="aa-stat-v2">0 BTC</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label" id="aa-stat-l3">TX</span>
+                        <span class="stat-value" id="aa-stat-v3">0</span>
+                    </div>
+                </div>
+
                 <div id="aa-status" role="status" aria-live="polite"></div>
             </div>
 
@@ -392,11 +419,13 @@ header{margin-bottom:1.5rem}
             <!-- Tree canvas -->
             <div id="aa-graph-wrap">
                 <div id="body"><!-- d3 tree is mounted here by arf.js --></div>
+                <!-- Pinned summary of the selected node (full id + from→to flow) -->
+                <div id="aa-flowbox" class="aa-hidden" aria-live="polite"></div>
                 <div id="aa-placeholder">
                     <div class="aa-placeholder-inner">
-                        <div class="aa-placeholder-title">Explore a Bitcoin address</div>
+                        <div class="aa-placeholder-title">Explore a Bitcoin address or transaction</div>
                         <div class="aa-placeholder-text">
-                            Enter any Bitcoin address above and press <strong>Analyze</strong>. Its transactions
+                            Enter any Bitcoin address or transaction ID above and press <strong>Analyze</strong>. Its transactions
                             render as an interactive tree &mdash; expand a transaction to reveal the counterparty
                             addresses, and click any node to see its full address, TXID, amount and public key
                             (shown when it has been revealed on-chain) in the panel below.
