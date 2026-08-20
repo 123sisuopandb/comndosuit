@@ -164,12 +164,22 @@ body { overflow: auto !important; }
 #panel-body { overflow: visible !important; height: auto !important; max-height: none !important; }
 #panel-open-tool { background: var(--aa-accent); }
 
-/* ---- Chain selector: all coins shown; only Bitcoin is wired up for now ---- */
+/* ---- Chain selector: every coin is analysable; the active tab is highlighted ---- */
 #aa-chain-tabs { margin-bottom: 1rem; }
-#aa-chain-tabs .chain-tab { cursor: pointer; }
-/* Non-Bitcoin coins are visible but not yet analysable (Phase 2). */
-#aa-chain-tabs .chain-tab.aa-soon { opacity: .72; }
-#aa-chain-tabs .chain-tab.aa-soon:hover { opacity: 1; }
+#aa-chain-tabs .chain-tab {
+  cursor: pointer;
+  opacity: .72;
+  transition: opacity .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+#aa-chain-tabs .chain-tab:hover { opacity: 1; }
+/* The selected chain: full opacity + an accent ring in the chain's own colour
+   (each tab sets --chain-color inline; falls back to the tool accent). */
+#aa-chain-tabs .chain-tab.active {
+  opacity: 1;
+  font-weight: 600;
+  border-color: var(--chain-color, var(--aa-accent)) !important;
+  box-shadow: 0 0 0 2px var(--chain-color, var(--aa-accent)) inset;
+}
 
 /* ---- Detail panel: blockchain field rows ---- */
 #panel-details-section { display: flex; flex-direction: column; gap: .5rem; }

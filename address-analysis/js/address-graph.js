@@ -31,6 +31,7 @@
   var MAX_COUNTERPARTIES = 40;   // cap counterparty children per transaction
   var txCache = {};              // address -> normalised txs array (avoid refetch)
   var lastSource = "";           // which explorer served the most recent fetch
+  var activeChain = null;        // the CHAINS entry currently selected (set in init)
 
   function $(id) { return document.getElementById(id); }
 
@@ -53,11 +54,28 @@
     return str.slice(0, head) + "…" + str.slice(-tail);
   }
 
-  function formatBTC(sat) {
-    if (sat == null) return "0 BTC";
-    var s = (sat / 1e8).toFixed(8).replace(/0+$/, "").replace(/\.$/, "");
-    return (s === "" ? "0" : s) + " BTC";
+  // Format a smallest-unit integer amount (satoshi / wei / drops / sun / nanoton…)
+  // as a human string for the given chain. Each chain declares its `decimals`
+  // (8 for bitcoin-family, 18 for EVM, 6 for tron/xrp, 9 for ton/sui/solana) and
+  // `symbol`. Display is capped at 8 fractional digits so 18-decimal chains stay
+  // readable. Falls back to the active chain, then Bitcoin, when none is passed.
+  function formatValue(amount, chain) {
+    chain = chain || activeChain || CHAINS.bitcoin;
+    var dec = (chain && chain.decimals != null) ? chain.decimals : 8;
+    var sym = (chain && chain.symbol) || "BTC";
+    if (amount == null) return "0 " + sym;
+    var num = Number(amount);          // tolerate BigInt / numeric-string / number
+    if (isNaN(num)) return "0 " + sym;
+    var human = num / Math.pow(10, dec);
+    var s = human.toFixed(Math.min(dec, 8)).replace(/0+$/, "").replace(/\.$/, "");
+    return (s === "" ? "0" : s) + " " + sym;
   }
+
+  // Shorthand used by every shared builder/renderer. It formats amounts for the
+  // CURRENTLY-ANALYSED chain (never cross-chain), so delegating to `activeChain`
+  // makes all the existing Bitcoin call sites chain-correct with zero churn.
+  // (Before init, activeChain is null → formatValue falls back to Bitcoin.)
+  function formatBTC(sat) { return formatValue(sat, activeChain); }
 
   // Accept mainnet legacy (1.. / 3..) and bech32 / bech32m (bc1..) addresses.
   function isProbablyBtcAddress(a) {
@@ -464,7 +482,8 @@
 
     // An un-loaded counterparty address → fetch its transactions on demand.
     if (data.kind === "address" && !d.children && !d._children && !d._loaded && !d._loading) {
-      lazyExpand(d);
+      if (activeChain && activeChain.model === "account") accountLazyExpand(d);
+      else lazyExpand(d);
       return;
     }
     // Expand/collapse IN PLACE — no page scroll, no viewport auto-pan — so a
@@ -640,19 +659,23 @@
           ? ("Confirmed" + (data.blockHeight ? " · block " + data.blockHeight : ""))
           : "Pending (in mempool)"));
         if (data.blockTime) rows.push(row("Time", new Date(data.blockTime * 1000).toUTCString()));
-        if (!data.isRoot) rows.push(pkRow("Public key of spender", data.ownPubkey, "Not revealed in this transaction"));
+        if (!data.isRoot && activeChain && activeChain.showPubkey) rows.push(pkRow("Public key of spender", data.ownPubkey, "Not revealed in this transaction"));
       } else {
         rows.push(row("Address", mono(data.address) + copyBtn(data.address)));
         if (data.isRoot && data.stats) {
           rows.push(row("Balance", formatBTC(data.stats.balance)));
-          rows.push(row("Total received", formatBTC(data.stats.funded)));
-          rows.push(row("Total sent", formatBTC(data.stats.spent)));
+          if (activeChain && activeChain.model === "account") {
+            if (data.stats.funded) rows.push(row("Total received", formatBTC(data.stats.funded)));
+          } else {
+            rows.push(row("Total received", formatBTC(data.stats.funded)));
+            rows.push(row("Total sent", formatBTC(data.stats.spent)));
+          }
           rows.push(row("Transactions", esc(String(data.stats.txCount)) +
             (data.loadedTxCount < data.stats.txCount ? " <span class='aa-muted'>(showing newest " + data.loadedTxCount + ")</span>" : "")));
         } else if (data.value != null) {
           rows.push(row(data.role === "recipient" ? "Amount received" : "Amount sent", formatBTC(data.value)));
         }
-        rows.push(pkRow("Public key", data.pubkey, "Not revealed yet — appears only once this address spends"));
+        if (activeChain && activeChain.showPubkey) rows.push(pkRow("Public key", data.pubkey, "Not revealed yet — appears only once this address spends"));
         if (!data.isRoot && !d._loaded) {
           rows.push(row("", "<span class='aa-muted'>Click this node to load its transactions.</span>"));
         }
@@ -665,9 +688,10 @@
     // CTA — open on the blockchain.info explorer
     var ctaSec = $("panel-cta-section"), cta = $("panel-open-tool");
     if (ctaSec && cta) {
+      var ch = activeChain || CHAINS.bitcoin;
       cta.href = isTx
-        ? "https://www.blockchain.com/explorer/transactions/btc/" + data.txid
-        : "https://www.blockchain.com/explorer/addresses/btc/" + data.address;
+        ? (ch.explorerTx ? ch.explorerTx(data.txid) : "#")
+        : (ch.explorerAddr ? ch.explorerAddr(data.address) : "#");
       cta.textContent = (isTx ? "View transaction" : "View address") + " on explorer ↗";
       ctaSec.classList.remove("empty");
     }
@@ -710,20 +734,68 @@
     setStat("aa-stat-l3", "aa-stat-v3", "Fee",       root.fee != null ? formatBTC(root.fee) : "—");
   }
 
-  // Route the single input box: 64-hex → transaction analysis, else → address.
+  // Route the single input box for the active chain: a 64-hex TXID (bitcoin only)
+  // → transaction analysis; anything that passes the chain's address validator
+  // → address analysis; otherwise explain what this chain expects.
   function analyze(input) {
     input = (input || "").trim();
-    if (isProbablyTxid(input)) { analyzeTx(input); return; }
-    if (isProbablyBtcAddress(input)) { analyzeAddress(input); return; }
-    setStatus("That doesn't look like a Bitcoin address or a transaction ID. Please check and try again.", "error");
+    var ch = currentChain();
+    if (!input) {
+      setStatus("Enter a " + ch.name + " address" + (ch.txid ? " or transaction ID" : "") + ".", "error");
+      return;
+    }
+    if (ch.txid && isProbablyTxid(input)) { analyzeTx(input); return; }
+    if (!ch.validate || ch.validate(input)) { analyzeAddress(input); return; }
+    setStatus("That doesn't look like a valid " + ch.name + " address" +
+              (ch.txid ? " or transaction ID" : "") + ". Please check and try again.", "error");
   }
 
   function analyzeAddress(addr) {
     var btn = $("analyze-btn");
     if (btn) btn.disabled = true;
+    var done = function () { if (btn) btn.disabled = false; };
     setStatus("Fetching transactions for " + shorten(addr) + " …", "loading");
 
-    fetchAddr(addr, TX_LIMIT)
+    // ---- Account model: balance via BalanceChecker (reuse) + txs via adapter ----
+    if (activeChain && activeChain.model === "account") {
+      var statsP = getStats(activeChain, addr);
+      var txP = (typeof activeChain.fetchTxs === "function")
+        ? activeChain.fetchTxs(addr, TX_LIMIT).catch(function () { return null; })
+        : Promise.resolve(null);
+      Promise.all([statsP, txP])
+        .then(function (res) {
+          var stats = res[0] || {};
+          var txs = res[1];
+          var txUnavailable = (txs == null);
+          txs = txs || [];
+          txCache[addr] = txs;
+          var rootData = buildAccountRoot(addr, txs, stats);
+          hidePlaceholder();
+          showSearch();
+          window.renderGraph(rootData);
+          if (window.root) updateFlowBox(window.root);
+          statsForAddress(rootData.stats);
+          if (txUnavailable) {
+            setStatus("Balance loaded for " + shorten(addr) + ". A live transaction graph isn't available for " +
+                      activeChain.name + " yet — showing balance and stats.", "");
+          } else {
+            setStatus(txs.length
+              ? ("Loaded " + txs.length + " transaction(s)" +
+                 (rootData.stats.txCount > txs.length ? " of " + rootData.stats.txCount + " (newest first)" : "") +
+                 ". Click a transaction to expand it.")
+              : "No transactions found for this address.", "");
+          }
+          try { history.replaceState(null, "", "?address=" + encodeURIComponent(addr)); } catch (e) {}
+        })
+        .catch(function () {
+          setStatus("Couldn't load data for that " + activeChain.name + " address. Check it and try again.", "error");
+        })
+        .then(done);
+      return;
+    }
+
+    // ---- UTXO model: the explorer response carries BOTH stats and txs ----
+    activeChain.fetchAddr(addr, TX_LIMIT)
       .then(function (data) {
         var txs = (data && data.txs) || [];
         txCache[addr] = txs;
@@ -734,16 +806,33 @@
         if (window.root) updateFlowBox(window.root);   // seed the pinned box with the root
         statsForAddress(rootData.stats);
         setStatus(txs.length
-          ? ("Loaded " + txs.length + " transaction(s)" + (rootData.stats.txCount > txs.length ? " of " + rootData.stats.txCount + " (newest first)" : "") + " · via " + lastSource + ". Click a transaction to expand it.")
+          ? ("Loaded " + txs.length + " transaction(s)" + (rootData.stats.txCount > txs.length ? " of " + rootData.stats.txCount + " (newest first)" : "") + (lastSource ? " · via " + lastSource : "") + ". Click a transaction to expand it.")
           : "No transactions found for this address.", "");
         try { history.replaceState(null, "", "?address=" + encodeURIComponent(addr)); } catch (e) {}
       })
       .catch(function (e) {
-        setStatus(/rate/.test(e && e.message)
-          ? "Both explorers are rate-limiting — wait a few seconds and press Analyze again."
-          : "Couldn't reach blockchain.info or blockstream.info. Check your connection and try again.", "error");
+        // Explorer unavailable / not wired → still show balance + stats via the
+        // keyless engine, with a clear "no tx graph" note. Never a dead tab.
+        return getStats(activeChain, addr).then(function (stats) {
+          var hasData = stats && (Number(stats.balance) > 0 || typeof stats.txCount === "number");
+          if (!hasData) {
+            setStatus(/rate/.test(e && e.message)
+              ? "Explorers are rate-limiting — wait a few seconds and press Analyze again."
+              : "Couldn't reach the block explorer for " + activeChain.name + ". Check your connection and try again.", "error");
+            return;
+          }
+          var rootData = buildAccountRoot(addr, [], stats);
+          hidePlaceholder();
+          showSearch();
+          window.renderGraph(rootData);
+          if (window.root) updateFlowBox(window.root);
+          statsForAddress(rootData.stats);
+          setStatus("Balance loaded for " + shorten(addr) + ". A live transaction graph isn't available for " +
+                    activeChain.name + " right now — showing balance and stats.", "");
+          try { history.replaceState(null, "", "?address=" + encodeURIComponent(addr)); } catch (e2) {}
+        });
       })
-      .then(function () { if (btn) btn.disabled = false; });
+      .then(done);
   }
 
   function analyzeTx(txid) {
@@ -792,20 +881,636 @@
     obs.observe(html, { attributes: true, attributeFilter: ["data-bs-theme"] });
   }
 
+  // ============================================================================
+  // ACCOUNT MODEL (EVM ×8, Tron, XRP, TON, Sui, Solana)
+  // ----------------------------------------------------------------------------
+  // Account-based chains have no UTXO inputs/outputs — each transfer is a single
+  // from → to with one amount. We normalise every provider response into:
+  //   { hash, from, to, value, time, blockHeight, fee, token }   (value = smallest unit)
+  // and build tree nodes shaped like the UTXO ones so arf.js + the detail
+  // panel + flow box (which are chain-agnostic) render them unchanged.
+  // ============================================================================
+
+  function eq(a, b) { return a && b && String(a).toLowerCase() === String(b).toLowerCase(); }
+
+  // One transaction as seen FROM the context address: its single child is the
+  // counterparty (the other side of the transfer), lazily expandable.
+  function makeAccountTxNode(tx, ctxAddr) {
+    var isOut = eq(tx.from, ctxAddr);
+    var isIn = eq(tx.to, ctxAddr);
+    var direction = (isOut && isIn) ? "self" : isOut ? "sent" : "received";
+    var counterparty = direction === "sent" ? tx.to : tx.from;
+    var value = tx.value || 0;
+    var net = direction === "received" ? value : direction === "sent" ? -value : 0;
+
+    var cps = [];
+    if (counterparty && !eq(counterparty, ctxAddr)) {
+      cps.push(makeAccountAddressNode(counterparty, value,
+               direction === "sent" ? "recipient" : "sender"));
+    }
+
+    var confirmed = (tx.blockHeight != null && tx.blockHeight > 0);
+    var sign = direction === "received" ? "+" : direction === "sent" ? "−" : "±";
+    var amt = formatValue(Math.abs(net) || value, activeChain);
+    var label = (tx.token ? tx.token + " " : "") + amt;
+    return {
+      name: tx.hash + "   " + sign + label,
+      description: "Transaction " + tx.hash + " — " + direction + " " + sign + label,
+      free: true,
+      kind: "tx",
+      txid: tx.hash,
+      direction: direction,
+      dir: direction === "received" ? "in" : direction === "sent" ? "out" : "self",
+      net: net,
+      fee: tx.fee,
+      token: tx.token || null,
+      confirmed: confirmed,
+      blockHeight: confirmed ? tx.blockHeight : null,
+      blockTime: tx.time,
+      contextAddress: ctxAddr,
+      children: cps
+    };
+  }
+
+  // A counterparty address node — lazily loads its own transactions on click.
+  function makeAccountAddressNode(addr, value, role) {
+    var sign = role === "recipient" ? "−" : "+";
+    return {
+      name: addr + "   " + sign + formatValue(value, activeChain),
+      description: addr + " — click to trace its transactions",
+      free: true,
+      kind: "address",
+      address: addr,
+      value: value,
+      role: role,
+      dir: role === "recipient" ? "out" : "in",
+      children: null
+    };
+  }
+
+  // Root node for an account address: children are its transactions.
+  function buildAccountRoot(addr, txs, stats) {
+    return {
+      name: addr,
+      description: addr,
+      free: true,
+      kind: "address",
+      address: addr,
+      isRoot: true,
+      stats: {
+        funded: (stats && stats.received) || 0,
+        spent: 0,
+        balance: (stats && stats.balance) || 0,
+        txCount: (stats && stats.txCount != null) ? stats.txCount : txs.length
+      },
+      loadedTxCount: txs.length,
+      children: txs.map(function (tx) { return makeAccountTxNode(tx, addr); })
+    };
+  }
+
+  // Lazy-expand an account counterparty address (mirrors the UTXO lazyExpand).
+  function accountLazyExpand(d) {
+    var addr = d.data.address;
+    if (!addr || !activeChain || typeof activeChain.fetchTxs !== "function") return;
+
+    function graft(txs) {
+      d.data.children = txs.map(function (tx) { return makeAccountTxNode(tx, addr); });
+      d.data.loadedTxCount = txs.length;
+      var kids = d.data.children.map(function (cd) {
+        var node = makeSubtree(cd, d);
+        if (node.children) { node._children = node.children; node.children = null; }
+        return node;
+      });
+      d.children = kids.length ? kids : null;
+      d._children = null;
+      d._loaded = true;
+      d._loading = false;
+      if (kids.length) {
+        allSearchNodes = allSearchNodes.concat(
+          d.descendants().filter(function (x) { return x.depth > 0 && x.data && x.data.name; })
+        );
+      }
+      setStatus(kids.length ? "" : ("No further transactions for " + shorten(addr) + "."), "");
+      update(d);
+    }
+
+    if (txCache[addr]) { graft(txCache[addr]); return; }
+    d._loading = true;
+    setStatus("Loading transactions for " + shorten(addr) + " …", "loading");
+    activeChain.fetchTxs(addr, TX_LIMIT)
+      .then(function (txs) { txs = txs || []; txCache[addr] = txs; graft(txs); })
+      .catch(function () {
+        d._loading = false;
+        setStatus("Couldn't load transactions for that address.", "error");
+      });
+  }
+
+  // ============================================================================
+  // CHAIN REGISTRY + shared stats/validation/explorer helpers
+  // ----------------------------------------------------------------------------
+  // Every tab is one CHAINS entry keyed by its data-chain slug. Balance + stats
+  // come from the site's existing keyless engine (window.BalanceChecker) for ALL
+  // chains; the transaction graph comes from each chain's own fetcher:
+  //   • UTXO chains   → fetchAddr(addr, limit)  → BCI-normalised {…, txs:[…]}
+  //   • account chains→ fetchTxs(addr, limit)   → [{hash,from,to,value,time,…}]
+  // A chain with no wired tx source degrades to balance-only (never "coming soon").
+  // ============================================================================
+
+  // ---- balance/stats via BalanceChecker (reuse; no keys, CORS-enabled) ----
+  // Maps a chain's `type` to the engine's public batch fetcher. EVM chains all
+  // share fetchEvmBalancesBatch(addresses, chainKey); others have a named fetcher.
+  function balanceFetcherFor(chain) {
+    var BC = window.BalanceChecker;
+    if (!BC) return null;
+    if (chain.type === "evm") {
+      if (typeof BC.fetchEvmBalancesBatch !== "function") return null;
+      return function (addrs) { return BC.fetchEvmBalancesBatch(addrs, chain.key); };
+    }
+    var byType = {
+      bitcoin: "fetchBitcoinBalancesBatch", bitcoincash: "fetchBitcoinCashBalancesBatch",
+      litecoin: "fetchLitecoinBalancesBatch", dogecoin: "fetchDogecoinBalancesBatch",
+      zcash: "fetchZcashBalancesBatch", solana: "fetchSolanaBalancesBatch",
+      tron: "fetchTronBalancesBatch", ton: "fetchTonBalancesBatch",
+      sui: "fetchSuiBalancesBatch", xrp: "fetchXrpBalancesBatch"
+    };
+    var fn = byType[chain.type];
+    if (!fn || typeof BC[fn] !== "function") return null;
+    return function (addrs) { return BC[fn](addrs); };
+  }
+
+  // Convert a BalanceChecker value to a smallest-unit Number (for formatValue).
+  // Prefer the BigInt `balance` (already smallest-unit); else human string ×10^dec.
+  function toSmallest(big, humanStr, dec) {
+    if (big != null) { var n = Number(big); if (!isNaN(n)) return n; }
+    if (humanStr != null) { var h = parseFloat(humanStr); if (!isNaN(h)) return Math.round(h * Math.pow(10, dec)); }
+    return 0;
+  }
+
+  // Fetch { balance, received, txCount } in smallest units for one address.
+  // txCount is trusted only where the engine reports a real count (UTXO + Tron);
+  // account chains derive it from the tx list, so we return null there.
+  function getStats(chain, addr) {
+    var fetcher = balanceFetcherFor(chain);
+    if (!fetcher) return Promise.resolve({ balance: 0, received: 0, txCount: null });
+    return fetcher([addr]).then(function (map) {
+      var e = null;
+      if (map && typeof map.get === "function") {
+        e = map.get(addr);
+        // Tolerate address normalisation (EVM checksum, cashaddr prefix, …): if the
+        // engine keyed the result under a canonical form, take the sole entry.
+        if (!e && map.size === 1) { map.forEach(function (v) { e = v; }); }
+      } else if (map) { e = map[addr]; }
+      if (!e) return { balance: 0, received: 0, txCount: 0 };
+      var dec = chain.decimals != null ? chain.decimals : 8;
+      return {
+        balance: toSmallest(e.balance, e.balanceStr, dec),
+        received: toSmallest(e.received, e.receivedStr, dec),
+        txCount: (chain.trustTxCount && typeof e.txCount === "number") ? e.txCount : null,
+        symbol: e.symbol
+      };
+    }).catch(function () { return { balance: 0, received: 0, txCount: null }; });
+  }
+
+  // ---- per-chain address validators (no shared validator exists in the site) ----
+  var RE = {
+    evm:      /^0x[0-9a-fA-F]{40}$/,
+    tron:     /^T[1-9A-HJ-NP-Za-km-z]{33}$/,
+    xrp:      /^r[1-9A-HJ-NP-Za-km-z]{23,34}$/,
+    solana:   /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
+    ton:      /^([A-Za-z0-9_-]{48}|(?:-1|0):[0-9a-fA-F]{64})$/,
+    sui:      /^0x[0-9a-fA-F]{1,64}$/,
+    litecoin: /^(ltc1[ac-hj-np-z02-9]{6,90}|[LM3][a-km-zA-HJ-NP-Z1-9]{25,39})$/,
+    bch:      /^((bitcoincash:)?[qp][a-z0-9]{41}|[13][a-km-zA-HJ-NP-Z1-9]{25,39})$/,
+    dogecoin: /^[DA9][a-km-zA-HJ-NP-Z1-9]{25,39}$/,
+    zcash:    /^t[13][a-km-zA-HJ-NP-Z1-9]{33}$/
+  };
+  function reValidator(key) { return function (a) { return RE[key].test((a || "").trim()); }; }
+
+  // ---- explorer URL builders ----
+  function expl(base) { return function (x) { return base + encodeURIComponent(x || ""); }; }
+
+  // ---- UTXO tx source: Esplora clone at an arbitrary base (litecoinspace etc.) ----
+  // Reuses esploraTxToBci so buildRoot/buildTxChildren/lazyExpand work unchanged.
+  function esploraBase(base) {
+    return function (addr, limit) {
+      var b = base + "/address/" + encodeURIComponent(addr);
+      return Promise.all([ fetch(b).then(okJson), fetch(b + "/txs").then(okJson) ])
+        .then(function (res) {
+          var stats = res[0] || {}, rawTxs = res[1] || [];
+          var cs = stats.chain_stats || {}, ms = stats.mempool_stats || {};
+          var funded = (cs.funded_txo_sum || 0) + (ms.funded_txo_sum || 0);
+          var spent = (cs.spent_txo_sum || 0) + (ms.spent_txo_sum || 0);
+          return {
+            address: addr,
+            n_tx: ((cs.tx_count || 0) + (ms.tx_count || 0)) || rawTxs.length,
+            total_received: funded, total_sent: spent, final_balance: funded - spent,
+            txs: rawTxs.slice(0, limit || TX_LIMIT).map(esploraTxToBci),
+            source: base.replace(/^https?:\/\//, "").replace(/\/api.*$/, "")
+          };
+        });
+    };
+  }
+  // Wrap a UTXO fetcher so it records which explorer served the data (status line).
+  function utxoVia(fn) {
+    return function (addr, limit) {
+      return fn(addr, limit).then(function (d) { lastSource = (d && d.source) || ""; return d; });
+    };
+  }
+
+  // Placeholder for chains whose keyless tx source is not wired yet. Rejecting
+  // here routes the flow to the balance-only fallback (never a dead tab).
+  function notWired() { return Promise.reject(new Error("tx source not wired")); }
+
+  // ============================================================================
+  // TRANSACTION FETCHERS (keyless, CORS — verified endpoints)
+  // Account fetchers resolve to [{hash, from, to, value, time, blockHeight, fee, token}]
+  // (value/fee in smallest units); UTXO fetchers resolve to the BCI-normalised
+  // {address, n_tx, total_received, total_sent, final_balance, txs:[…]} shape.
+  // ============================================================================
+
+  // ---- EVM: Blockscout API v2 (eth/base/optimism/arbitrum/polygon/zksync) ----
+  // Same schema on every host: items[] with from.hash / to.hash / value(wei).
+  function blockscoutTxs(host) {
+    return function (addr, limit) {
+      var url = "https://" + host + "/api/v2/addresses/" + encodeURIComponent(addr) + "/transactions";
+      return fetch(url, { headers: { "Accept": "application/json" } }).then(okJson).then(function (d) {
+        var items = (d && Array.isArray(d.items)) ? d.items : [];
+        return items.slice(0, limit || TX_LIMIT).map(function (t) {
+          return {
+            hash: t.hash,
+            from: (t.from && t.from.hash) || null,
+            to: (t.to && t.to.hash) || null,
+            value: Number(t.value || 0),                                 // wei
+            time: t.timestamp ? Math.floor(Date.parse(t.timestamp) / 1000) : null,
+            blockHeight: (t.block_number != null) ? Number(t.block_number) : null,
+            fee: (t.fee && t.fee.value != null) ? Number(t.fee.value) : null
+          };
+        });
+      });
+    };
+  }
+
+  // ---- EVM: Routescan Etherscan-compatible API (Avalanche = chainId 43114) ----
+  function routescanTxs(chainId) {
+    return function (addr, limit) {
+      var n = limit || TX_LIMIT;
+      var url = "https://api.routescan.io/v2/network/mainnet/evm/" + chainId +
+                "/etherscan/api?module=account&action=txlist&address=" + encodeURIComponent(addr) +
+                "&sort=desc&page=1&offset=" + n;
+      return fetch(url).then(okJson).then(function (d) {
+        var list = (d && Array.isArray(d.result)) ? d.result : [];
+        return list.slice(0, n).map(function (t) {
+          return {
+            hash: t.hash,
+            from: t.from || null,
+            to: t.to || null,
+            value: Number(t.value || 0),
+            time: t.timeStamp ? Number(t.timeStamp) : null,
+            blockHeight: t.blockNumber ? Number(t.blockNumber) : null,
+            fee: (t.gasUsed && t.gasPrice) ? Number(t.gasUsed) * Number(t.gasPrice) : null
+          };
+        });
+      });
+    };
+  }
+
+  // ---- Tron: tronscan (clean base58 from/to/amount; TRC-20 in trigger_info) ----
+  function tronscanTxs() {
+    return function (addr, limit) {
+      var n = limit || TX_LIMIT;
+      var url = "https://apilist.tronscanapi.com/api/transaction?address=" + encodeURIComponent(addr) +
+                "&limit=" + n + "&start=0";
+      return fetch(url).then(okJson).then(function (d) {
+        var list = (d && Array.isArray(d.data)) ? d.data : [];
+        return list.slice(0, n).map(function (t) {
+          var ti = t.tokenInfo || {};
+          var to = t.toAddress, value = Number(t.amount || 0), token = null;
+          // TRC-20 transfers carry amount "0" at the top level; the real recipient
+          // + value live in trigger_info.parameter (USDT-TRON is 6-decimals, ~= TRX).
+          if ((t.amount === "0" || t.amount === 0) && t.trigger_info && t.trigger_info.parameter) {
+            var p = t.trigger_info.parameter;
+            if (p._to) to = p._to;
+            if (p._value != null) value = Number(p._value);
+            token = (ti.tokenAbbr || "TRC20").toUpperCase();
+          }
+          return {
+            hash: t.hash,
+            from: t.ownerAddress || null,
+            to: to || null,
+            value: value,
+            time: t.timestamp ? Math.floor(Number(t.timestamp) / 1000) : null,
+            blockHeight: t.block ? Number(t.block) : null,
+            fee: null,
+            token: token
+          };
+        });
+      });
+    };
+  }
+
+  // ---- XRP: xrpscan (Payments; Amount is a drops string, or an issued-token obj) ----
+  function xrpscanTxs() {
+    return function (addr, limit) {
+      var n = limit || TX_LIMIT;
+      var url = "https://api.xrpscan.com/api/v1/account/" + encodeURIComponent(addr) + "/transactions?limit=" + n;
+      return fetch(url).then(okJson).then(function (d) {
+        var list = (d && Array.isArray(d.transactions)) ? d.transactions : [];
+        return list.slice(0, n).filter(function (t) {
+          return t && (t.TransactionType === "Payment" || t.Amount != null);
+        }).map(function (t) {
+          var value = 0, token = null;
+          if (typeof t.Amount === "string") value = Number(t.Amount);          // drops
+          else if (t.Amount && t.Amount.value != null) { value = Number(t.Amount.value); token = t.Amount.currency; }
+          return {
+            hash: t.hash,
+            from: t.Account || null,
+            to: t.Destination || null,
+            value: value,
+            time: t.date ? Math.floor(Date.parse(t.date) / 1000) : null,
+            blockHeight: (t.ledger_index != null) ? Number(t.ledger_index) : null,
+            fee: (t.Fee != null) ? Number(t.Fee) : null,
+            token: token
+          };
+        });
+      });
+    };
+  }
+
+  // ---- TON: tonapi events (TonTransfer / JettonTransfer actions, nested) ----
+  function tonapiTxs() {
+    return function (addr, limit) {
+      var n = limit || TX_LIMIT;
+      var url = "https://tonapi.io/v2/accounts/" + encodeURIComponent(addr) + "/events?limit=" + n;
+      return fetch(url).then(okJson).then(function (d) {
+        var events = (d && Array.isArray(d.events)) ? d.events : [];
+        var out = [];
+        events.forEach(function (ev) {
+          var actions = (ev && Array.isArray(ev.actions)) ? ev.actions : [];
+          for (var i = 0; i < actions.length; i++) {
+            var tt = actions[i].TonTransfer, jt = actions[i].JettonTransfer;
+            if (tt) {
+              out.push({ hash: ev.event_id,
+                from: tt.sender && tt.sender.address, to: tt.recipient && tt.recipient.address,
+                value: Number(tt.amount || 0), time: ev.timestamp ? Number(ev.timestamp) : null,
+                blockHeight: null, fee: null, token: null });
+              break;
+            } else if (jt) {
+              out.push({ hash: ev.event_id,
+                from: jt.sender && jt.sender.address, to: jt.recipient && jt.recipient.address,
+                value: Number(jt.amount || 0), time: ev.timestamp ? Number(ev.timestamp) : null,
+                blockHeight: null, fee: null,
+                token: (jt.jetton && (jt.jetton.symbol || jt.jetton.name)) || "Jetton" });
+              break;
+            }
+          }
+        });
+        return out.slice(0, n);
+      });
+    };
+  }
+
+  // ---- UTXO: BlockCypher /full (Dogecoin) → BCI shape (stats + full txs) ----
+  function blockcypherUtxo(coin) {
+    return function (addr, limit) {
+      var n = limit || TX_LIMIT;
+      var url = "https://api.blockcypher.com/v1/" + coin + "/main/addrs/" + encodeURIComponent(addr) + "/full?limit=" + n;
+      return fetch(url).then(okJson).then(function (d) {
+        var txs = (d && Array.isArray(d.txs)) ? d.txs : [];
+        return {
+          address: (d && d.address) || addr,
+          n_tx: (d && d.n_tx != null) ? d.n_tx : txs.length,
+          total_received: (d && d.total_received) || 0,
+          total_sent: (d && d.total_sent) || 0,
+          final_balance: (d && (d.final_balance != null ? d.final_balance : d.balance)) || 0,
+          txs: txs.slice(0, n).map(function (t) {
+            return {
+              hash: t.hash,
+              time: t.confirmed ? Math.floor(Date.parse(t.confirmed) / 1000) : null,
+              block_height: (t.block_height && t.block_height > 0) ? t.block_height : null,
+              fee: t.fees,
+              inputs: (t.inputs || []).map(function (v) {
+                return { prev_out: { addr: (v.addresses && v.addresses[0]) || null, value: v.output_value || 0 }, script: "" };
+              }),
+              out: (t.outputs || []).map(function (o) {
+                return { addr: (o.addresses && o.addresses[0]) || null, value: o.value || 0 };
+              })
+            };
+          }),
+          source: "blockcypher.com"
+        };
+      });
+    };
+  }
+
+  // ---- UTXO: Haskoin (Bitcoin Cash) → BCI shape ----
+  // Haskoin (api.haskoin.com) is keyless and sends Access-Control-Allow-Origin:*,
+  // so it is browser-callable. It has no aggregate-stats field on the tx list, so
+  // we pair /balance (confirmed/received/txs) with /transactions/full (the txs).
+  // If the coin's shard is unavailable (it 502s at times), the fetch rejects and
+  // analyzeAddress falls back to balance-only — so BCH is never a dead tab.
+  function haskoinUtxo(coin) {
+    return function (addr, limit) {
+      var n = limit || TX_LIMIT;
+      var base = "https://api.haskoin.com/" + coin + "/address/" + encodeURIComponent(addr);
+      return Promise.all([
+        fetch(base + "/balance").then(okJson),
+        fetch(base + "/transactions/full?limit=" + n).then(okJson)
+      ]).then(function (res) {
+        var b = res[0] || {}, list = Array.isArray(res[1]) ? res[1] : [];
+        var balance = Number(b.confirmed || 0) + Number(b.unconfirmed || 0);
+        var received = Number(b.received || 0);
+        return {
+          address: b.address || addr,
+          n_tx: (b.txs != null) ? Number(b.txs) : list.length,
+          total_received: received,
+          total_sent: Math.max(0, received - balance),
+          final_balance: balance,
+          txs: list.slice(0, n).map(function (t) {
+            return {
+              hash: t.txid,
+              time: t.time || null,
+              block_height: (t.block && t.block.height > 0) ? t.block.height : null,
+              fee: (t.fee != null) ? Number(t.fee) : null,
+              inputs: (t.inputs || []).map(function (v) {
+                return { prev_out: { addr: v.address || null, value: Number(v.value || 0) }, script: "" };
+              }),
+              out: (t.outputs || []).map(function (o) {
+                return { addr: o.address || null, value: Number(o.value || 0) };
+              })
+            };
+          }),
+          source: "haskoin.com"
+        };
+      });
+    };
+  }
+
+  // ---- the registry: 18 chains keyed by data-chain slug ----
+  var CHAINS = {
+    bitcoin: {
+      name: "Bitcoin", symbol: "BTC", decimals: 8, model: "utxo", type: "bitcoin",
+      validate: isProbablyBtcAddress, fetchAddr: fetchAddr,
+      explorerAddr: expl("https://www.blockchain.com/explorer/addresses/btc/"),
+      explorerTx:   expl("https://www.blockchain.com/explorer/transactions/btc/"),
+      showPubkey: true, txid: true, trustTxCount: true
+    },
+    litecoin: {
+      name: "Litecoin", symbol: "LTC", decimals: 8, model: "utxo", type: "litecoin",
+      validate: reValidator("litecoin"), fetchAddr: utxoVia(esploraBase("https://litecoinspace.org/api")),
+      explorerAddr: expl("https://blockchair.com/litecoin/address/"),
+      explorerTx:   expl("https://blockchair.com/litecoin/transaction/"),
+      trustTxCount: true
+    },
+    "bitcoin-cash": {
+      name: "Bitcoin Cash", symbol: "BCH", decimals: 8, model: "utxo", type: "bitcoincash",
+      validate: reValidator("bch"), fetchAddr: utxoVia(haskoinUtxo("bch")),
+      explorerAddr: expl("https://blockchair.com/bitcoin-cash/address/"),
+      explorerTx:   expl("https://blockchair.com/bitcoin-cash/transaction/"),
+      trustTxCount: true
+    },
+    dogecoin: {
+      name: "Dogecoin", symbol: "DOGE", decimals: 8, model: "utxo", type: "dogecoin",
+      validate: reValidator("dogecoin"), fetchAddr: utxoVia(blockcypherUtxo("doge")),
+      explorerAddr: expl("https://blockchair.com/dogecoin/address/"),
+      explorerTx:   expl("https://blockchair.com/dogecoin/transaction/"),
+      trustTxCount: true
+    },
+    zcash: {
+      name: "Zcash", symbol: "ZEC", decimals: 8, model: "utxo", type: "zcash",
+      validate: reValidator("zcash"), fetchAddr: notWired,   // no keyless CORS Zcash tx API → balance-only
+      explorerAddr: expl("https://blockchair.com/zcash/address/"),
+      explorerTx:   expl("https://blockchair.com/zcash/transaction/"),
+      trustTxCount: true
+    },
+    ethereum: {
+      name: "Ethereum", symbol: "ETH", decimals: 18, model: "account", type: "evm", key: "ethereum",
+      validate: reValidator("evm"), fetchTxs: blockscoutTxs("eth.blockscout.com"),
+      explorerAddr: expl("https://etherscan.io/address/"), explorerTx: expl("https://etherscan.io/tx/")
+    },
+    bnb: {
+      name: "BNB Chain", symbol: "BNB", decimals: 18, model: "account", type: "evm", key: "bnb",
+      validate: reValidator("evm"), fetchTxs: notWired,
+      explorerAddr: expl("https://bscscan.com/address/"), explorerTx: expl("https://bscscan.com/tx/")
+    },
+    arbitrum: {
+      name: "Arbitrum", symbol: "ETH", decimals: 18, model: "account", type: "evm", key: "arbitrum",
+      validate: reValidator("evm"), fetchTxs: blockscoutTxs("arbitrum.blockscout.com"),
+      explorerAddr: expl("https://arbiscan.io/address/"), explorerTx: expl("https://arbiscan.io/tx/")
+    },
+    optimism: {
+      name: "Optimism", symbol: "ETH", decimals: 18, model: "account", type: "evm", key: "optimism",
+      validate: reValidator("evm"), fetchTxs: blockscoutTxs("explorer.optimism.io"),
+      explorerAddr: expl("https://optimistic.etherscan.io/address/"), explorerTx: expl("https://optimistic.etherscan.io/tx/")
+    },
+    base: {
+      name: "Base", symbol: "ETH", decimals: 18, model: "account", type: "evm", key: "base",
+      validate: reValidator("evm"), fetchTxs: blockscoutTxs("base.blockscout.com"),
+      explorerAddr: expl("https://basescan.org/address/"), explorerTx: expl("https://basescan.org/tx/")
+    },
+    polygon: {
+      name: "Polygon", symbol: "POL", decimals: 18, model: "account", type: "evm", key: "polygon",
+      validate: reValidator("evm"), fetchTxs: blockscoutTxs("polygon.blockscout.com"),
+      explorerAddr: expl("https://polygonscan.com/address/"), explorerTx: expl("https://polygonscan.com/tx/")
+    },
+    avalanche: {
+      name: "Avalanche", symbol: "AVAX", decimals: 18, model: "account", type: "evm", key: "avalanche",
+      validate: reValidator("evm"), fetchTxs: routescanTxs(43114),
+      explorerAddr: expl("https://snowtrace.io/address/"), explorerTx: expl("https://snowtrace.io/tx/")
+    },
+    zksync: {
+      name: "zkSync Era", symbol: "ETH", decimals: 18, model: "account", type: "evm", key: "zksync",
+      validate: reValidator("evm"), fetchTxs: blockscoutTxs("zksync.blockscout.com"),
+      explorerAddr: expl("https://explorer.zksync.io/address/"), explorerTx: expl("https://explorer.zksync.io/tx/")
+    },
+    tron: {
+      name: "Tron", symbol: "TRX", decimals: 6, model: "account", type: "tron",
+      validate: reValidator("tron"), fetchTxs: tronscanTxs(), trustTxCount: true,
+      explorerAddr: expl("https://tronscan.org/#/address/"), explorerTx: expl("https://tronscan.org/#/transaction/")
+    },
+    xrp: {
+      name: "XRP", symbol: "XRP", decimals: 6, model: "account", type: "xrp",
+      validate: reValidator("xrp"), fetchTxs: xrpscanTxs(),
+      explorerAddr: expl("https://xrpscan.com/account/"), explorerTx: expl("https://xrpscan.com/tx/")
+    },
+    toncoin: {
+      name: "TON", symbol: "TON", decimals: 9, model: "account", type: "ton",
+      validate: reValidator("ton"), fetchTxs: tonapiTxs(),
+      explorerAddr: expl("https://tonviewer.com/"), explorerTx: expl("https://tonviewer.com/transaction/")
+    },
+    sui: {
+      name: "Sui", symbol: "SUI", decimals: 9, model: "account", type: "sui",
+      validate: reValidator("sui"), fetchTxs: notWired,
+      explorerAddr: expl("https://suiscan.xyz/mainnet/account/"), explorerTx: expl("https://suiscan.xyz/mainnet/tx/")
+    },
+    solana: {
+      name: "Solana", symbol: "SOL", decimals: 9, model: "account", type: "solana",
+      validate: reValidator("solana"), fetchTxs: notWired,
+      explorerAddr: expl("https://solscan.io/account/"), explorerTx: expl("https://solscan.io/tx/")
+    }
+  };
+
   // ---------- chain selector ----------
-  // All coins are shown, but only Bitcoin is analysable in this phase. Clicking
-  // another coin explains that it's coming soon rather than doing nothing.
+  function currentChain() { return activeChain || CHAINS.bitcoin; }
+
+  // Update the search bar (icon, placeholder, hint), stat-card symbols and the
+  // empty-canvas placeholder to reflect the chosen chain.
+  function applyChainUi(slug, tabEl) {
+    var chain = CHAINS[slug];
+    if (!chain) return;
+    var icon = $("aa-search-icon");
+    var tabImg = tabEl ? tabEl.querySelector("img") : null;
+    if (icon && tabImg) { icon.src = tabImg.src; icon.alt = tabImg.alt || slug; }
+
+    var ph = chain.txid ? (chain.name + " address or transaction ID (TXID)") : (chain.name + " address");
+    var input = $("address-input");
+    if (input) { input.placeholder = ph; input.setAttribute("aria-label", ph); }
+    var hint = $("aa-search-hint");
+    if (hint) hint.textContent = "Enter a " + chain.name + " address" +
+      (chain.txid ? " or a 64-character transaction ID (TXID)." : ".") +
+      " Balance and stats load for every chain; the transaction graph loads where a keyless explorer is available.";
+    var title = document.querySelector(".aa-placeholder-title");
+    if (title) title.textContent = "Explore a " + chain.name + (chain.txid ? " address or transaction" : " address");
+
+    setStat("aa-stat-l1", "aa-stat-v1", "Balance",  "0 " + chain.symbol);
+    setStat("aa-stat-l2", "aa-stat-v2", "Received", "0 " + chain.symbol);
+    setStat("aa-stat-l3", "aa-stat-v3", "TX",       "0");
+  }
+
+  // Clear the graph/panel/flow box/status so the previous chain's view is gone.
+  function resetForChain() {
+    txCache = {};
+    if (typeof closePanel === "function") closePanel();
+    if (typeof vis !== "undefined" && vis) vis.selectAll("*").remove();
+    var flow = $("aa-flowbox"); if (flow) { flow.classList.add("aa-hidden"); flow.innerHTML = ""; }
+    var placeholder = $("aa-placeholder"); if (placeholder) placeholder.classList.remove("aa-hidden");
+    var sc = $("search-container"); if (sc) sc.classList.add("aa-hidden");
+    setStatus("", "");
+  }
+
+  function selectChain(slug, tabEl) {
+    var chain = CHAINS[slug];
+    if (!chain) { setStatus("This chain isn't available.", "error"); return; }
+    activeChain = chain;
+    var tabs = document.querySelectorAll("#aa-chain-tabs .chain-tab");
+    tabs.forEach(function (t) { t.classList.toggle("active", t === tabEl); });
+    // Accent (CTA, flow box, active tab) follows the chain's own colour.
+    var color = tabEl ? (tabEl.style.getPropertyValue("--chain-color") || "").trim() : "";
+    document.documentElement.style.setProperty("--aa-accent", color || "#f7931a");
+    applyChainUi(slug, tabEl);
+    resetForChain();
+    var input = $("address-input");
+    if (input) { input.value = ""; input.focus(); }
+  }
+
+  // All coins are analysable. Clicking a tab switches the active chain.
   function wireChainTabs() {
     var tabs = document.querySelectorAll("#aa-chain-tabs .chain-tab");
     if (!tabs.length) return;
     tabs.forEach(function (tab) {
-      var chain = tab.getAttribute("data-chain");
-      if (chain !== "bitcoin") tab.classList.add("aa-soon");
+      var slug = tab.getAttribute("data-chain");
       tab.addEventListener("click", function (e) {
         e.preventDefault();
-        if (chain === "bitcoin") { var inp = $("address-input"); if (inp) inp.focus(); return; }
-        var name = tab.getAttribute("data-name") || "This chain";
-        setStatus(name + " support is coming soon — Bitcoin address analysis is available now.", "");
+        selectChain(slug, tab);
       });
     });
   }
@@ -817,6 +1522,13 @@
       if (e.key === "Enter") { e.preventDefault(); analyze(input.value); }
     });
     wireChainTabs();
+    // Set the active chain from the pre-selected tab (Bitcoin) BEFORE any analyse,
+    // and sync the search bar / stat cards to it.
+    var activeTab = document.querySelector("#aa-chain-tabs .chain-tab.active") ||
+                    document.querySelector('#aa-chain-tabs .chain-tab[data-chain="bitcoin"]');
+    var slug = (activeTab && CHAINS[activeTab.getAttribute("data-chain")]) ? activeTab.getAttribute("data-chain") : "bitcoin";
+    activeChain = CHAINS[slug];
+    applyChainUi(slug, activeTab);
     watchTheme();
     // Deep link: ?address=... or ?txid=... (analyze() auto-detects the type).
     var q = /[?&]txid=([^&]+)/.exec(location.search) || /[?&]address=([^&]+)/.exec(location.search);
