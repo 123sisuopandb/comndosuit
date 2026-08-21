@@ -209,7 +209,7 @@ header{margin-bottom:1.5rem}
     <!-- Address Analysis tool styles -->
     <link type="text/css" rel="stylesheet" href="css/arf.css"/>
     <link type="text/css" rel="stylesheet" href="css/panel.css"/>
-    <link type="text/css" rel="stylesheet" href="css/address-analysis.css"/>
+    <link type="text/css" rel="stylesheet" href="css/address-analysis.css?v=20260828"/>
 <script src="/assets/js/clean-urls.js?v=cgturl1"></script>
 </head>
 <body>
@@ -389,6 +389,21 @@ header{margin-bottom:1.5rem}
                     </div>
                 </div>
 
+                <!-- Transactions-to-fetch selector: how many newest transactions to
+                     load per address. Applies to Analyze AND to every address you
+                     click in the graph. -->
+                <div id="aa-txlimit-wrap" class="d-flex align-items-center flex-wrap gap-2 mt-2">
+                    <label for="aa-tx-limit" class="small text-muted mb-0">Transactions to fetch:</label>
+                    <select id="aa-tx-limit" class="form-select form-select-sm" style="width:auto;min-width:88px;"
+                            aria-label="Number of transactions to fetch per address">
+                        <option value="100" selected>100</option>
+                        <option value="200">200</option>
+                        <option value="300">300</option>
+                        <option value="500">500</option>
+                    </select>
+                    <span class="small text-muted">newest per address (also used when you click a node in the graph)</span>
+                </div>
+
                 <!-- Balance / activity summary (populated after analysis) -->
                 <div class="balance-summary cols-3" id="aa-balance-summary">
                     <div class="stat-card">
@@ -408,19 +423,51 @@ header{margin-bottom:1.5rem}
                 <div id="aa-status" role="status" aria-live="polite"></div>
             </div>
 
-            <!-- In-tree filter (revealed after first analysis) -->
+            <!-- Fullscreen stage: filter + match list, the tree, and the detail
+                 panel all live inside one wrapper so they stay usable when the
+                 chart is expanded to fullscreen. -->
+            <div id="aa-stage">
+
+            <!-- In-tree filter + match list (revealed after first analysis) -->
             <div id="search-container" class="aa-hidden">
-                <input type="text" id="search-input" class="form-control"
-                       placeholder="Filter addresses / TXIDs in view&hellip;"
-                       autocomplete="off" aria-label="Filter nodes in the graph">
-                <div id="search-results" role="listbox" aria-label="Search results"></div>
+                <div class="aa-tools-row">
+                    <div class="aa-filter-col">
+                        <input type="text" id="search-input" class="form-control"
+                               placeholder="Filter addresses / TXIDs in view&hellip;"
+                               autocomplete="off" aria-label="Filter nodes in the graph">
+                        <div id="search-results" role="listbox" aria-label="Search results"></div>
+                    </div>
+                    <div class="aa-watch-col">
+                        <textarea id="aa-watchlist" class="form-control" rows="3"
+                                  placeholder="Match list &mdash; paste addresses / TXIDs, one per line. Any match is highlighted in YELLOW across the graph as you trace."
+                                  autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+                                  aria-label="Addresses or transaction IDs to highlight in the graph"></textarea>
+                        <div class="aa-watch-hint"><span id="aa-watch-count">0</span> in match list &middot; stays highlighted as you expand nodes</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Tree canvas -->
             <div id="aa-graph-wrap">
+                <div id="aa-graph-tools">
+                    <button id="aa-shot-btn" class="aa-graph-btn" type="button"
+                            aria-label="Download HD screenshot" title="Download HD screenshot (up to 12K)">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                             stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2 5.5h2l1-1.5h6l1 1.5h2v8H2z"/>
+                            <circle cx="8" cy="9" r="2.4"/>
+                        </svg>
+                        <span id="aa-shot-label">Screenshot</span>
+                    </button>
+                    <button id="aa-fs-btn" class="aa-graph-btn" type="button" aria-label="Toggle fullscreen" title="Fullscreen">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                             stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/>
+                        </svg>
+                        <span id="aa-fs-label">Fullscreen</span>
+                    </button>
+                </div>
                 <div id="body"><!-- d3 tree is mounted here by arf.js --></div>
-                <!-- Pinned summary of the selected node (full id + from→to flow) -->
-                <div id="aa-flowbox" class="aa-hidden" aria-live="polite"></div>
                 <div id="aa-placeholder">
                     <div class="aa-placeholder-inner">
                         <div class="aa-placeholder-title">Explore a Bitcoin address or transaction</div>
@@ -457,6 +504,7 @@ header{margin-bottom:1.5rem}
                 </div>
               </div>
             </div>
+            </div><!-- /#aa-stage -->
 
             <div class="alert alert-warning mt-4 small">
                 <strong>Read-only explorer.</strong> Transaction data is read live from public block-explorer
@@ -675,8 +723,8 @@ header{margin-bottom:1.5rem}
 
     <!-- Address Analysis tool engine (d3 collapsible tree) -->
     <script src="js/d3.min.js"></script>
-    <script src="js/arf.js?v=20260820"></script>
-    <script src="js/address-graph.js?v=20260823"></script>
+    <script src="js/arf.js?v=20260828"></script>
+    <script src="js/address-graph.js?v=20260828"></script>
 
     <!-- ========== SCRIPTS ========== -->
     

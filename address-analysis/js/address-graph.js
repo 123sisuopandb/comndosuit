@@ -27,7 +27,9 @@
   // browser. FALLBACK: blockstream.info Esplora (also CORS `*`).
   var API_BCI = "https://blockchain.info";
   var API_ESPLORA = "https://blockstream.info/api";
-  var TX_LIMIT = 25;             // newest txs kept per address for the tree
+  var TX_LIMIT = 100;            // newest txs fetched per address for the tree;
+                                 // user-adjustable via the #aa-tx-limit selector
+                                 // (100/200/300/500) — see wireTxLimit().
   var MAX_COUNTERPARTIES = 40;   // cap counterparty children per transaction
   var txCache = {};              // address -> normalised txs array (avoid refetch)
   var lastSource = "";           // which explorer served the most recent fetch
@@ -108,21 +110,41 @@
   // (100 txs/page, same tx shape as /rawaddr). We take the newest page and keep
   // the freshest `limit` txs for the tree.
   function fetchBci(addr, limit) {
-    var url = API_BCI + "/address/" + encodeURIComponent(addr) +
-              "?format=json&offset=0&cors=true";
-    return fetch(url, { headers: { "Accept": "application/json" } })
-      .then(okJson)
-      .then(function (d) {
-        return {
-          address: d.address || addr,
-          n_tx: d.n_tx || (d.txs || []).length,
-          total_received: d.total_received || 0,
-          total_sent: d.total_sent || 0,
-          final_balance: d.final_balance || 0,
-          txs: (d.txs || []).slice(0, limit || TX_LIMIT),
-          source: "blockchain.info"
-        };
-      });
+    var want = limit || TX_LIMIT;
+    var all = [], meta = null;
+    // blockchain.info returns a page of txs per call (≤50); page through offsets
+    // until we have `want` newest txs, hit the end, or a page comes back empty.
+    function page(offset) {
+      var url = API_BCI + "/address/" + encodeURIComponent(addr) +
+                "?format=json&limit=50&offset=" + offset + "&cors=true";
+      return fetch(url, { headers: { "Accept": "application/json" } })
+        .then(okJson)
+        .then(function (d) {
+          if (!meta) meta = d;
+          var txs = (d && d.txs) || [];
+          all = all.concat(txs);
+          var total = (meta && meta.n_tx) || all.length;
+          if (all.length >= want || txs.length === 0 || all.length >= total) return;
+          return page(offset + txs.length);
+        })
+        .catch(function (e) {
+          // Partial success: keep what we already fetched. Total failure (nothing
+          // yet) propagates so fetchAddr can fall back to Esplora / surface a hint.
+          if (all.length) return;
+          throw e;
+        });
+    }
+    return page(0).then(function () {
+      return {
+        address: (meta && meta.address) || addr,
+        n_tx: (meta && meta.n_tx) || all.length,
+        total_received: (meta && meta.total_received) || 0,
+        total_sent: (meta && meta.total_sent) || 0,
+        final_balance: (meta && meta.final_balance) || 0,
+        txs: all.slice(0, want),
+        source: "blockchain.info"
+      };
+    });
   }
 
   // Normalise one Esplora tx into the blockchain.info tx shape.
@@ -476,7 +498,10 @@
 
   // ---------- click behaviour ----------
   function handleNodeClick(d) {
-    openPanel(d);                                  // show details + fill the flow box
+    // In fullscreen, suppress the slide-in detail panel so it can't cover the
+    // chart — clicking still expands/traces the graph. The panel is used in the
+    // normal (in-page) layout, where it sits below the tree, not over it.
+    if (!isFullscreen()) openPanel(d);             // details panel (skipped in fullscreen)
     var data = d.data || {};
     if (data.isRoot) return;                       // keep the whole graph visible
 
@@ -697,17 +722,59 @@
     }
   }
 
+  // Robust clipboard copy: prefer the async Clipboard API (needs a secure
+  // context), fall back to a temporary <textarea> + execCommand where it is
+  // unavailable or rejects. In fullscreen the temp element MUST be attached
+  // inside the fullscreen subtree or it can't be focused/selected.
+  function legacyCopy(text) {
+    return new Promise(function (resolve, reject) {
+      try {
+        var host = document.fullscreenElement || document.webkitFullscreenElement || document.body;
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "0";
+        ta.style.left = "0";
+        ta.style.width = "1px";
+        ta.style.height = "1px";
+        ta.style.padding = "0";
+        ta.style.border = "none";
+        ta.style.opacity = "0";
+        host.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try { ta.setSelectionRange(0, text.length); } catch (e) {}
+        var ok = document.execCommand("copy");
+        host.removeChild(ta);
+        ok ? resolve() : reject(new Error("execCommand copy rejected"));
+      } catch (e) { reject(e); }
+    });
+  }
+  function copyToClipboard(text) {
+    text = String(text == null ? "" : text);
+    if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).catch(function () { return legacyCopy(text); });
+    }
+    return legacyCopy(text);
+  }
+  function flashCopyBtn(btn, msg) {
+    if (!btn.getAttribute("data-label")) btn.setAttribute("data-label", btn.textContent);
+    btn.textContent = msg;
+    clearTimeout(btn._flashT);
+    btn._flashT = setTimeout(function () { btn.textContent = btn.getAttribute("data-label"); }, 1300);
+  }
   function wireCopyButtons(container) {
     container.querySelectorAll(".aa-copy").forEach(function (btn) {
       btn.addEventListener("click", function (e) {
         e.stopPropagation();
-        var text = btn.getAttribute("data-copy");
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(function () {
-            var old = btn.textContent; btn.textContent = "copied";
-            setTimeout(function () { btn.textContent = old; }, 1200);
-          }).catch(function () {});
-        }
+        e.preventDefault();
+        var text = btn.getAttribute("data-copy") || "";
+        copyToClipboard(text).then(function () {
+          flashCopyBtn(btn, "copied");
+        }).catch(function () {
+          flashCopyBtn(btn, "copy failed");
+        });
       });
     });
   }
@@ -1515,8 +1582,211 @@
     });
   }
 
+  // How many transactions to fetch per address. Reads the #aa-tx-limit selector
+  // (100/200/300/500) and keeps TX_LIMIT in sync so BOTH Analyze and every address
+  // you click in the graph fetch the chosen count. Changing it clears the
+  // per-address cache so subsequent fetches use the new count.
+  function wireTxLimit() {
+    var sel = $("aa-tx-limit");
+    if (!sel) return;
+    function apply() {
+      var n = parseInt(sel.value, 10);
+      if (n > 0) { TX_LIMIT = n; txCache = {}; }
+    }
+    apply();                                   // honour the pre-selected value on load
+    sel.addEventListener("change", apply);
+  }
+
+  // ---------- match list (trace highlight) ----------
+  // A user-supplied list of addresses/TXIDs (one per line) kept highlighted in
+  // YELLOW across the WHOLE graph — including nodes revealed later by expansion —
+  // so a target can be traced as you walk tx → address → tx. arf.js asks
+  // window.isWatched(d) for every node at render time, so newly-expanded nodes
+  // light up automatically without re-walking the tree.
+  var watchSet = {}, watchCount = 0;
+  function parseWatchList(text) {
+    var set = {}, n = 0;
+    String(text || "").split(/[\s,;]+/).forEach(function (tok) {
+      tok = tok.trim().toLowerCase();
+      if (tok && !set[tok]) { set[tok] = 1; n++; }
+    });
+    watchCount = n;
+    return set;
+  }
+  // Exact (case-insensitive) match on a node's full address OR full TXID.
+  window.isWatched = function (d) {
+    if (!d || !d.data) return false;
+    var id = (d.data.kind === "tx") ? d.data.txid : d.data.address;
+    return !!(id && watchSet[String(id).toLowerCase()]);
+  };
+  function updateWatchCount() {
+    var el = $("aa-watch-count");
+    if (el) el.textContent = String(watchCount);
+  }
+  function wireWatchList() {
+    var box = $("aa-watchlist");
+    if (!box) return;
+    var t = null;
+    function apply() {
+      watchSet = parseWatchList(box.value);
+      updateWatchCount();
+      if (window.root && typeof update === "function") update(window.root);   // re-render → matches turn yellow
+    }
+    box.addEventListener("input", function () { clearTimeout(t); t = setTimeout(apply, 200); });
+  }
+
+  // ---------- fullscreen ----------
+  // Expand the tree stage (#aa-stage) to fill the screen so large graphs can be
+  // traced comfortably. The filter and match list live inside the stage so they
+  // keep working; the detail panel is intentionally suppressed in fullscreen
+  // (see handleNodeClick) so it never covers the chart. JS toggles .aa-fs-active
+  // (CSS does the layout) and re-fits the tree to the new canvas size.
+  function isFullscreen() {
+    var s = $("aa-stage");
+    return !!(s && s.classList.contains("aa-fs-active"));
+  }
+  function wireFullscreen() {
+    var btn = $("aa-fs-btn"), stage = $("aa-stage");
+    if (!btn || !stage) return;
+    function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+    btn.addEventListener("click", function () {
+      if (fsEl() === stage) {
+        (document.exitFullscreen || document.webkitExitFullscreen || function () {}).call(document);
+      } else {
+        (stage.requestFullscreen || stage.webkitRequestFullscreen || function () {}).call(stage);
+      }
+    });
+    function onChange() {
+      var active = fsEl() === stage;
+      stage.classList.toggle("aa-fs-active", active);
+      var label = $("aa-fs-label");
+      if (label) label.textContent = active ? "Exit" : "Fullscreen";
+      btn.setAttribute("title", active ? "Exit fullscreen" : "Fullscreen");
+      if (active && typeof closePanel === "function") closePanel();   // don't carry the side panel into fullscreen
+      // Let the browser apply fullscreen layout before re-fitting the tree.
+      setTimeout(function () { if (typeof window.aaRefit === "function") window.aaRefit(); }, 140);
+    }
+    document.addEventListener("fullscreenchange", onChange);
+    document.addEventListener("webkitfullscreenchange", onChange);
+  }
+
+  // ---------- HD screenshot ----------
+  // Export the whole rendered tree as a high-resolution PNG (targets ~12K wide,
+  // capped to stay within browser canvas limits) so it stays crisp when zoomed.
+  // The SVG is cloned, framed to the full content bounds (independent of the
+  // on-screen zoom/pan), and the styles that come from external CSS (link
+  // strokes + label font) are baked in so the standalone image matches the view.
+  function takeScreenshot(done) {
+    function fail() { if (done) done(false); }
+    var svg = document.querySelector("#body svg");
+    var visLive = svg && svg.querySelector("g");
+    if (!svg || !visLive) return fail();
+
+    var bbox;
+    try { bbox = visLive.getBBox(); } catch (e) { return fail(); }
+    if (!bbox.width || !bbox.height) return fail();
+
+    var pad = 40;
+    var vbX = bbox.x - pad, vbY = bbox.y - pad;
+    var vbW = bbox.width + pad * 2, vbH = bbox.height + pad * 2;
+
+    var clone = svg.cloneNode(true);
+    clone.setAttribute("viewBox", vbX + " " + vbY + " " + vbW + " " + vbH);
+    clone.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    var visClone = clone.querySelector("g");
+    if (visClone) visClone.setAttribute("transform", "translate(0,0)");   // drop interactive zoom
+
+    // Bake external-CSS styling into the standalone SVG so it renders identically.
+    var linkEl = svg.querySelector("path.link");
+    var textEl = svg.querySelector(".node text");
+    var bodyCS = getComputedStyle(document.body);
+    var linkStroke = linkEl ? getComputedStyle(linkEl).stroke : "#888";
+    var linkWidth  = linkEl ? getComputedStyle(linkEl).strokeWidth : "1.5px";
+    var fontFamily = textEl ? getComputedStyle(textEl).fontFamily
+                            : "'SFMono-Regular', Consolas, monospace";
+    var bg = (bodyCS.getPropertyValue("--cgt-bg") || "#ffffff").trim() || "#ffffff";
+
+    var styleEl = document.createElementNS("http://www.w3.org/2000/svg", "style");
+    styleEl.textContent =
+      "path.link{fill:none;stroke:" + linkStroke + ";stroke-width:" + linkWidth + ";}" +
+      ".node text{font-family:" + fontFamily + ";font-size:12px;}" +
+      "text{font-family:" + fontFamily + ";}";
+    clone.insertBefore(styleEl, clone.firstChild);
+
+    // High-res output, capped by per-dimension and total-area limits so huge
+    // trees don't exceed what the browser's canvas can allocate.
+    var TARGET_W = 12000, MAX_DIM = 16000, MAX_AREA = 100e6;
+    var scale = TARGET_W / vbW;
+    var outW = vbW * scale, outH = vbH * scale;
+    if (outW > MAX_DIM) { var s1 = MAX_DIM / outW; outW *= s1; outH *= s1; }
+    if (outH > MAX_DIM) { var s2 = MAX_DIM / outH; outW *= s2; outH *= s2; }
+    if (outW * outH > MAX_AREA) { var s3 = Math.sqrt(MAX_AREA / (outW * outH)); outW *= s3; outH *= s3; }
+    outW = Math.max(1, Math.round(outW));
+    outH = Math.max(1, Math.round(outH));
+    clone.setAttribute("width", outW);
+    clone.setAttribute("height", outH);
+
+    var xml = new XMLSerializer().serializeToString(clone);
+    if (xml.indexOf("xmlns=") === -1) {
+      xml = xml.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    var svgUrl = URL.createObjectURL(new Blob([xml], { type: "image/svg+xml;charset=utf-8" }));
+
+    var img = new Image();
+    img.onload = function () {
+      try {
+        var canvas = document.createElement("canvas");
+        canvas.width = outW;
+        canvas.height = outH;
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, outW, outH);
+        ctx.drawImage(img, 0, 0, outW, outH);
+        URL.revokeObjectURL(svgUrl);
+        canvas.toBlob(function (blob) {
+          if (!blob) return fail();
+          var a = document.createElement("a");
+          var dl = URL.createObjectURL(blob);
+          a.href = dl;
+          a.download = "address-graph-" + outW + "x" + outH + ".png";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(function () { URL.revokeObjectURL(dl); }, 2000);
+          if (done) done(true);
+        }, "image/png");
+      } catch (e) { URL.revokeObjectURL(svgUrl); fail(); }
+    };
+    img.onerror = function () { URL.revokeObjectURL(svgUrl); fail(); };
+    img.src = svgUrl;
+  }
+
+  function wireScreenshot() {
+    var btn = $("aa-shot-btn");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var label = $("aa-shot-label");
+      var restore = label ? label.textContent : "";
+      function flash(msg) {
+        if (!label) return;
+        label.textContent = msg;
+        setTimeout(function () { label.textContent = restore; }, 1500);
+      }
+      if (!window.root) { flash("no chart"); return; }
+      if (label) label.textContent = "saving…";
+      // Defer one tick so the "saving…" label paints before the heavy rasterization.
+      setTimeout(function () {
+        takeScreenshot(function (ok) { flash(ok ? "saved ✓" : "failed"); });
+      }, 30);
+    });
+  }
+
   function init() {
     var input = $("address-input"), btn = $("analyze-btn");
+    wireTxLimit();
+    wireWatchList();
+    wireFullscreen();
+    wireScreenshot();
     if (btn) btn.addEventListener("click", function () { analyze(input ? input.value : ""); });
     if (input) input.addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); analyze(input.value); }

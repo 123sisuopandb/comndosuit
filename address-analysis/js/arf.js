@@ -7,8 +7,14 @@ var margin = [20, 120, 20, 140],
     allSearchNodes = [],
     searchMatches = [];
 
+// Watchlist highlight — Address Analysis provides window.isWatched(d); any node
+// whose address/TXID is in the user's match list renders in YELLOW so it can be
+// traced across the whole graph (including nodes revealed later by expansion).
+var WATCH_FILL = "#ffd21e", WATCH_STROKE = "#c77800";
+function _watched(d) { return typeof window.isWatched === "function" && !!window.isWatched(d); }
+
 var tree = d3.tree()
-    .nodeSize([34, 1])
+    .nodeSize([40, 1])
     .separation(function(a, b) { return 1; });
 
 var diagonal = d3.linkHorizontal()
@@ -171,6 +177,7 @@ function update(source) {
   nodeEnter.append("circle")
       .attr("r", 1e-6)
       .style("fill", function(d) {
+        if (_watched(d)) return WATCH_FILL;
         if (d._highlighted) return getCSSVar("--color-accent");
         return d._children ? getCSSVar("--color-node-fill-branch") : getCSSVar("--color-node-fill-leaf");
       });
@@ -181,7 +188,7 @@ function update(source) {
       .append("text")
       // Label sits BEFORE (left of) the circle for nodes that have visible
       // children, so outgoing links don't cross it; leaf nodes keep it after.
-      .attr("x", function(d) { return labelSide(d) === "left" ? -16 : 16; })
+      .attr("x", function(d) { return labelSide(d) === "left" ? -20 : 20; })
       .attr("dy", ".35em")
       .attr("text-anchor", function(d) { return labelSide(d) === "left" ? "end" : "start"; })
       .style("fill", function(d) {
@@ -205,8 +212,8 @@ function update(source) {
           var dirColor = d.data.dir === "in" ? "#2d9e2d"
                        : d.data.dir === "out" ? "#c84040" : "#606060";
           el.append("tspan")
-            .attr("dx", "6")
-            .style("font-size", "13px")
+            .attr("dx", "7")
+            .style("font-size", "18px")
             .style("fill", dirColor)
             .text("●");
         }
@@ -224,7 +231,7 @@ function update(source) {
   // gained visible children flips its label to the LEFT (so its outgoing links
   // exit into empty space); one that collapsed flips back to the right.
   nodeMerge.select("text")
-      .attr("x", function(d) { return labelSide(d) === "left" ? -16 : 16; })
+      .attr("x", function(d) { return labelSide(d) === "left" ? -20 : 20; })
       .attr("text-anchor", function(d) { return labelSide(d) === "left" ? "end" : "start"; });
 
   var nodeUpdate = nodeMerge.transition()
@@ -232,22 +239,24 @@ function update(source) {
       .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
   nodeUpdate.select("circle")
-      .attr("r", function(d) { return d._highlighted ? 13 : 9; })
+      .attr("r", function(d) { return (d._highlighted || _watched(d)) ? 17 : 13; })
       .style("fill", function(d) {
+        if (_watched(d)) return WATCH_FILL;
         if (d._highlighted) return getCSSVar("--color-accent");
         return d._children ? getCSSVar("--color-node-fill-branch") : getCSSVar("--color-node-fill-leaf");
       })
       .style("stroke", function(d) {
+        if (_watched(d)) return WATCH_STROKE;
         return d._panelSelected ? getCSSVar("--color-accent") : getCSSVar("--color-node-stroke");
       })
       .style("stroke-width", function(d) {
-        if (d._panelSelected) return "3px";
+        if (_watched(d) || d._panelSelected) return "3px";
         return d._highlighted ? "2.5px" : "1.5px";
       });
 
   nodeUpdate.select("text")
       .style("fill-opacity", 1)
-      .style("font-weight", function(d) { return d._highlighted ? "bold" : "normal"; })
+      .style("font-weight", function(d) { return (d._highlighted || _watched(d)) ? "bold" : "normal"; })
       .style("fill", function(d) {
         return d.data.free ? getCSSVar("--color-text-primary") : getCSSVar("--color-text-secondary");
       });
@@ -324,6 +333,20 @@ function zoomToFill() {
   var ty = svgH / 2 - (bbox.y + bbox.height / 2) * k - margin[0];
   svgEl.call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(k));
 }
+
+// Re-fit the tree to the current canvas size. Called by the Address Analysis
+// controller after entering/leaving fullscreen, where #body changes dimensions:
+// recompute the viewBox aspect from the live rect, then zoom the content to fill.
+function aaRefit() {
+  if (!root) return;
+  var rect = svgEl.node().getBoundingClientRect();
+  if (rect.width && rect.height) {
+    svgH = Math.round(svgW * (rect.height / rect.width));
+    svgEl.attr("viewBox", "0 0 " + svgW + " " + svgH);
+  }
+  zoomToFill();
+}
+window.aaRefit = aaRefit;
 
 // Auto-pan viewport to center on a node after expand/click.
 function zoomToNode(d) {
